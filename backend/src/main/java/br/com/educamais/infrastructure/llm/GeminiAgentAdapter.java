@@ -34,6 +34,8 @@ public class GeminiAgentAdapter implements LlmPort {
     private final RestClient restClient;
 
     public GeminiAgentAdapter(AgentProperties properties, GeminiRequestFactory requestFactory,
+                              @org.springframework.beans.factory.annotation.Qualifier(
+                                      br.com.educamais.config.JsonMapperConfig.ADAPTER_OBJECT_MAPPER)
                               ObjectMapper objectMapper, RestClient.Builder restClientBuilder) {
         this.properties = properties;
         this.requestFactory = requestFactory;

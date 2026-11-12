@@ -6,10 +6,12 @@ import br.com.educamais.domain.port.AuditRepository;
 import br.com.educamais.infrastructure.persistence.entity.AuditEntity;
 import br.com.educamais.infrastructure.persistence.jpa.AuditJpaRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
+import br.com.educamais.config.JsonMapperConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -18,7 +20,8 @@ public class AuditPersistenceAdapter implements AuditRepository {
     private final AuditJpaRepository repository;
     private final ObjectMapper objectMapper;
 
-    public AuditPersistenceAdapter(AuditJpaRepository repository, ObjectMapper objectMapper) {
+    public AuditPersistenceAdapter(AuditJpaRepository repository, @Qualifier(JsonMapperConfig.ADAPTER_OBJECT_MAPPER)
+            ObjectMapper objectMapper) {
         this.repository = repository;
         this.objectMapper = objectMapper;
     }

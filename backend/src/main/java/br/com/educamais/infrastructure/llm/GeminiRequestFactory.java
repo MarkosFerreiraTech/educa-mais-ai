@@ -1,8 +1,10 @@
 package br.com.educamais.infrastructure.llm;
 
+import br.com.educamais.config.JsonMapperConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 /**
@@ -14,7 +16,8 @@ public class GeminiRequestFactory {
 
     private final ObjectMapper objectMapper;
 
-    public GeminiRequestFactory(ObjectMapper objectMapper) {
+    public GeminiRequestFactory(@Qualifier(JsonMapperConfig.ADAPTER_OBJECT_MAPPER)
+            ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 
