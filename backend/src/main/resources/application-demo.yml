@@ -6,6 +6,11 @@ spring:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/educamais}
     username: ${DB_USER:educamais}
     password: ${DB_PASSWORD:educamais}
+    # O perfil dev (incluido acima) fixa driver-class-name: org.h2.Driver.
+    # Sem sobrescrever aqui, o demo conecta no Postgres do Compose usando o
+    # driver do H2 e morre no boot com:
+    #   "Driver org.h2.Driver claims to not accept JDBC URL jdbc:postgresql://..."
+    driver-class-name: org.postgresql.Driver
   flyway:
     enabled: true
     locations: classpath:db/migration
