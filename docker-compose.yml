@@ -80,9 +80,10 @@ services:
         API_URL: ${API_URL:-http://localhost:8080/api/v1}
     container_name: educa-mais-web
     depends_on:
+      # service_started libera o web enquanto a API ainda esta em crash-loop,
+      # e o nginx antigo morria no boot ("host not found in upstream api").
+      # service_healthy so libera o web quando a API responde no actuator.
       api:
-        # service_healthy (nao service_started): evita subir o nginx enquanto a API ainda
-        # inicializa e devolver 502 nas primeiras requisicoes do avaliador.
         condition: service_healthy
     ports:
       - "4200:8080"

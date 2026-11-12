@@ -1,20 +1,25 @@
-# Perfil de demonstracao: Postgres (Docker Compose) + dados de exemplo + agente em modo demo.
+# Perfil de demonstracao: Postgres do Docker Compose + dados de exemplo + agente em modo demo.
 #
-# ATENCAO: este perfil NAO inclui o perfil `dev`.
-# O `dev` aponta para H2 em memoria e fixa `driver-class-name: org.h2.Driver`. Quando o demo
-# herdava o dev (`spring.profiles.include: dev`) e ao mesmo tempo recebia uma URL PostgreSQL
-# pelo Docker Compose, a API subia com a URL do Postgres e o driver do H2 e morria no startup:
+# IMPORTANTE: um resource profile-specific (como este) NAO pode declarar
+# spring.profiles.include/active. Desde o Spring Boot 2.4 o boot falha com:
+#   InvalidConfigDataPropertyException: Property 'spring.profiles.include'
+#   imported from location 'class path resource [application-demo.yml]' is invalid
 #
-#   Failed to determine a suitable driver class
-#   ... container educa-mais-api exited (1)
+# Foi exatamente essa heranca (include: dev) que causava o crash do Docker Compose:
+# o `dev` fixa driver-class-name: org.h2.Driver, entao a API subia com a URL do
+# Postgres e o driver do H2 e morria antes do healthcheck:
+#   Failed to determine a suitable driver class  ->  container educa-mais-api exited (1)
 #
-# Por isso tudo o que o demo precisa esta declarado aqui, de forma explicita.
+# O demo e autocontido e NAO inclui o perfil dev. Para rodar localmente sem
+# Docker, use SPRING_PROFILES_ACTIVE=dev (H2 em memoria).
 spring:
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/educamais}
-    driver-class-name: org.postgresql.Driver
     username: ${DB_USER:educamais}
     password: ${DB_PASSWORD:educamais}
+    # Driver fixado explicitamente (o Postgres esta no classpath); sem pin, a
+    # deteccao pelo URL tambem funciona, mas o pin e deterministico.
+    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       # O esquema vem das migrations do Flyway; nada e criado por engenharia reversa.
