@@ -14,7 +14,9 @@ public class AuditEntity {
     @Id
     private UUID id;
 
-    @Column(name = "mission_id", nullable = false)
+    // Sem nullable = false: o agente registra decisoes antes de a missao existir
+    // (mission_id e anulavel no esquema V1); marcar NOT NULL aqui quebrava o ddl-auto=validate.
+    @Column(name = "mission_id")
     private UUID missionId;
 
     @Column(name = "action", nullable = false, length = 16)
