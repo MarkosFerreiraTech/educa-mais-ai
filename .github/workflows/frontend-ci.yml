@@ -1,0 +1,72 @@
+name: Frontend CI
+
+on:
+  push:
+    branches: [main, develop, 'feature/**', 'arena/**']
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-ci.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'frontend/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Build + Testes (Angular 22 / Clarity)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci --no-audit --no-fund
+
+      - name: Testes unitarios (vitest)
+        id: test
+        run: npm test -- --watch=false 2>&1 | tee ../frontend-test.log
+
+      - name: Build de producao
+        id: build
+        run: npm run build 2>&1 | tee ../frontend-build.log
+
+      - name: Diagnosticos (falha)
+        if: failure()
+        run: |
+          {
+            echo "### Diagnostico do frontend"
+            grep -E "ERROR|error TS|NG[0-9]+|FAIL|✘" ../frontend-test.log ../frontend-build.log 2>/dev/null | head -60
+            echo ""
+            tail -40 ../frontend-build.log 2>/dev/null
+          } >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
+          grep -hE "ERROR|error TS|NG[0-9]+:|✘|AssertionError|expected" ../frontend-test.log ../frontend-build.log 2>/dev/null \
+            | head -30 | cut -c1-420 | while IFS= read -r line; do
+                echo "::error title=Frontend::${line}"
+              done
+
+      - name: Publicar bundle do build
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist/
+          retention-days: 7
+          if-no-files-found: ignore

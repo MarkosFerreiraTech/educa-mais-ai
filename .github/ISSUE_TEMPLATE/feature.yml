@@ -1,0 +1,60 @@
+name: "Nova funcionalidade (RF)"
+description: "Spec-driven: cada issue rastreia requisto, criterio de aceite e teste."
+title: "[RF##] "
+labels: ["tipo: feature"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use este template para funcionalidades do Educa Mais. Toda issue deve citar
+        ao menos um **RF/RNF** de `docs/requisitos.md` e um **caso de uso** de `docs/casos-de-uso.md`.
+  - type: textarea
+    id: contexto
+    attributes:
+      label: Contexto
+      description: Qual problema do aluno/professor isso resolve?
+      placeholder: "Ex.: hoje o professor so descobre a lacuna semanas depois..."
+    validations:
+      required: true
+  - type: input
+    id: requisito
+    attributes:
+      label: Requisitos rastreados
+      placeholder: "RF12, RF15, RNF24"
+    validations:
+      required: true
+  - type: input
+    id: caso-de-uso
+    attributes:
+      label: Caso de uso
+      placeholder: "UC04 - Planejar trilha personalizada"
+    validations:
+      required: true
+  - type: textarea
+    id: criterios
+    attributes:
+      label: Criterios de aceite (Gherkin)
+      description: Copie os cenarios da user story correspondente.
+      value: |
+        ```gherkin
+        Cenario: <titulo>
+          Dado <contexto>
+          Quando <acao>
+          Entao <resultado observavel>
+        ```
+    validations:
+      required: true
+  - type: textarea
+    id: tecnico
+    attributes:
+      label: Notas tecnicas
+      description: Camadas tocadas (domain/service/api/infra/frontend), migracoes, feature flags.
+  - type: checklists
+    attributes:
+      label: Definition of Done
+      options:
+        - label: Testes unitarios cobrindo as regras de negocio
+        - label: Teste de integracao do fluxo (quando aplicavel)
+        - label: Documentacao atualizada (README/docs)
+        - label: Sem regressao no Quality Gate (cobertura, Checkstyle, ArchUnit)
+        - label: Conventional Commit + `Closes #<issue>` no PR

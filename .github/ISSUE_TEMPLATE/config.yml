@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentacao do projeto
+    url: https://github.com/MarkosFerreiraTech/educa-mais-ai/tree/main/docs
+    about: Charter, requisitos, casos de uso, user stories e arquitetura do agente.
+  - name: Guia de contribuicao
+    url: https://github.com/MarkosFerreiraTech/educa-mais-ai/blob/main/README.md
+    about: Setup local, convencoes de commit e fluxo GitFlow.

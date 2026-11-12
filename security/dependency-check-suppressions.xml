@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Supressoes do OWASP Dependency-Check (RNF17), com justificativa obrigatoria.
+  Toda entrada precisa de: CVE, motivo e data de revisao.
+-->
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+    <!--
+    Exemplo de supressao (mantido apenas como referencia de formato):
+
+    <suppress until="2027-01-31Z">
+        <notes><![CDATA[
+            CVE-2024-XXXXX afeta apenas o servidor de aplicacao embarcado em modo war;
+            o Educa Mais roda o jar executavel do Spring Boot com Tomcat 11 patchado.
+        ]]></notes>
+        <cve>CVE-2024-XXXXX</cve>
+    </suppress>
+    -->
+</suppressions>
