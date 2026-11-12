@@ -185,10 +185,30 @@ public final class EntityMapper {
         entity.setPlanSource(mission.planSource().name());
         entity.setCreatedAt(mission.createdAt());
         entity.setCompletedAt(mission.completedAt());
-        for (MissionStep step : mission.steps()) {
-            entity.addStep(toEntity(step));
-        }
+        syncSteps(entity, mission);
         return entity;
+    }
+
+    /**
+     * Sincroniza os passos da missao reaproveitando as entidades ja gerenciadas.
+     *
+     * <p>Criar uma lista nova de {@code MissionStepEntity} com os mesmos ids faz o Hibernate
+     * lancar "Multiple representations of the same entity" durante o merge. Aqui, os passos
+     * existentes sao atualizados e os novos (id desconhecido) sao adicionados.</p>
+     */
+    private static void syncSteps(MissionEntity entity, Mission mission) {
+        List<MissionStepEntity> managed = new java.util.ArrayList<>(entity.getSteps());
+        for (MissionStep step : mission.steps()) {
+            MissionStepEntity target = managed.stream()
+                    .filter(existing -> existing.getId() != null && existing.getId().equals(step.id()))
+                    .findFirst()
+                    .orElse(null);
+            if (target == null) {
+                entity.addStep(toEntity(step));
+            } else {
+                toEntity(target, step);
+            }
+        }
     }
 
     public static MissionStepEntity toEntity(MissionStep step) {
