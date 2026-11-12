@@ -228,6 +228,7 @@ Sem credenciais, o provider `DEMO` registra a notificação como `SKIPPED` (o hi
 | [Casos de uso](docs/casos-de-uso.md) | 11 casos de uso com atores, fluxo principal, alternativos e de exceção |
 | [User stories](docs/user-stories.md) | Épicos e histórias em Gherkin com critérios de aceite |
 | [Arquitetura do agente](docs/arquitetura-agente.md) | C4 (contexto/containers/componentes), fluxo autônomo, DER, AWS, segurança, padrões |
+| [Rastreabilidade](docs/rastreabilidade.md) | Matriz requisito → caso de uso → issue → código → teste (e o inverso) |
 | [Diagramas](docs/diagramas/README.md) | Índice dos diagramas Mermaid por visão arquitetural |
 | [API (OpenAPI)](docs/api/openapi.yaml) | Contrato REST: 18 rotas, 14 schemas, erros padronizados |
 | [ADRs](docs/adr/) | Decisões: hexagonal, Spring Boot 4, Gemini, WhatsApp híbrido, gamificação, observabilidade |

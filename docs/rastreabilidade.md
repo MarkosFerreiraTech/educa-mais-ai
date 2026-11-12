@@ -13,7 +13,7 @@ Como ler: cada linha começa num requisito numerado de [`requisitos.md`](requisi
 | RF03 | Renovação de token | UC01 | #1 | `AuthService.refresh` | `AuthFlowIT.refreshRenovaSessao` |
 | RF04 | Controle de acesso por papel | UC09 | #1 | `SecurityConfig`, `JwtAuthenticationFilter` | `AuthFlowIT` (401/403), `JwtAuthenticationFilterTest` |
 | RF05 | Bloqueio por tentativas de login | UC01 | #1 | `LoginAttemptGuard` | `LoginAttemptGuardTest` |
-| RF06 | Receber falta do diário de classe | UC03 | #2 | `SchoolIntegrationController` | `AutonomousCycleIT`, `SchoolIntegrationIT` |
+| RF06 | Receber falta do diário de classe | UC03 | #2 | `SchoolIntegrationController` | `AutonomousCycleIT`, `HmacSignatureValidatorTest` |
 | RF07 | Autenticar origem por API key + HMAC | UC03 | #2 | `HmacSignatureValidator` | `HmacSignatureValidatorTest` |
 | RF08 | Rejeitar replay por timestamp | UC03 | #2 | `HmacSignatureValidator` | `HmacSignatureValidatorTest.timestampAntigo` |
 | RF09 | Idempotência por `eventId` | UC03 | #2 | `AttendanceService` | `AutonomousCycleIT.eventoDuplicadoEIdempotente` |
