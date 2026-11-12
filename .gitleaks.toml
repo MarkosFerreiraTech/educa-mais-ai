@@ -1,0 +1,48 @@
+# ============================================================
+# Educa Mais - configuracao do Gitleaks
+# ------------------------------------------------------------
+# Estende as regras padrao do Gitleaks e adiciona uma allowlist
+# APENAS para credenciais de desenvolvimento/demonstracao que sao
+# publicas por design (nao dao acesso a nenhum ambiente real).
+#
+# Regra de ouro: NUNCA adicionar aqui um segredo de producao.
+# Segredos reais vivem em variaveis de ambiente / GitHub Secrets.
+# ============================================================
+title = "Educa Mais - segredos"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Credenciais de demo/dev, explicitamente publicas e sem valor de acesso"
+
+# Arquivos que existem justamente para documentar valores de exemplo.
+paths = [
+  '''^\.env\.example$''',
+  '''^docker-compose\.yml$''',
+  '''^backend/src/test/resources/application-test\.yml$''',
+  '''^backend/src/main/resources/application\.yml$''',
+  '''^infra/authelia/users_database\.yml$''',
+  '''^infra/observability/grafana-dashboard\.json$''',
+  '''^scripts/demo-ciclo\.sh$''',
+  '''^scripts/setup-gitflow\.sh$''',
+  '''^docs/''',
+  '''^README\.md$''',
+  '''^SECURITY\.md$''',
+]
+
+# Valores claramente marcados como nao-producao.
+regexes = [
+  '''dev-school-hmac-secret''',
+  '''dev-school-api-key''',
+  '''dev-secret-com-pelo-menos-32-caracteres''',
+  '''dev-authelia-(session|storage)-secret-32-chars''',
+  '''integration-test-secret-with-32-characters-min''',
+  '''test-api-key''',
+  '''test-hmac-secret''',
+  '''0123456789abcdef0123456789abcdef''',
+  '''troque-em-producao''',
+  '''changeme''',
+  '''Demo@2026''',
+  '''\$argon2id\$v=19\$m=65536,t=3,p=4\$''',
+]

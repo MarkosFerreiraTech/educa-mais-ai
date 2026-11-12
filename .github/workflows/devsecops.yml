@@ -32,6 +32,9 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Allowlist justificada: apenas credenciais de demo/teste (.gitleaks.toml)
+          GITLEAKS_CONFIG: ${{ github.workspace }}/.gitleaks.toml
+          GITLEAKS_ENABLE_COMMENTS: 'true'
 
   dependency-check:
     name: Dependencias (OWASP Dependency-Check)
