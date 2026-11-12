@@ -128,7 +128,8 @@ class MissionServiceTest {
         ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
         verify(eventPublisher).publishEvent(captor.capture());
         assertThat(captor.getValue()).isInstanceOfSatisfying(MissionCompletedEvent.class, event -> {
-            assertThat(event.missionId()).isEqualTo(missionId);
+            assertThat(event.missionId()).isEqualTo(mission.id());
+            assertThat(event.studentId()).isEqualTo(studentId);
             assertThat(event.withSupport()).isFalse();
         });
     }
