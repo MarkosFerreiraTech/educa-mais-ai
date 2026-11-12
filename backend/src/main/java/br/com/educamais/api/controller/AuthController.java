@@ -37,7 +37,7 @@ public class AuthController {
         List<Interest> interests = toInterests(request.interests());
         AuthService.AuthResult result = authService.register(request.name(), request.email(), request.phone(),
                 request.birthDate(), request.password(), interests, request.schoolId(), request.classroomId(),
-                request.whatsAppOptIn());
+                request.whatsAppOptInOrDefault());
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiMapper.toLoginResponse(result));
     }
 

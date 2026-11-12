@@ -37,8 +37,13 @@ public record RegisterRequest(
 
         UUID classroomId,
 
-        boolean whatsAppOptIn,
+        Boolean whatsAppOptIn,
 
         @Pattern(regexp = "^(ACEITE|NAO_ACEITE)$", message = "aceite do responsavel invalido")
         String guardianConsent) {
+
+    /** Opt-in de WhatsApp e opcional no payload: ausente significa "nao autorizado". */
+    public boolean whatsAppOptInOrDefault() {
+        return Boolean.TRUE.equals(whatsAppOptIn);
+    }
 }
