@@ -1,0 +1,105 @@
+# =============================================================================
+# Authelia - SSO/OIDC para professores e administradores do Educa Mais (RF35).
+#
+# Suba com: docker compose --profile sso up -d
+# Os segredos vem de variaveis de ambiente (AUTHELIA_*), nunca do arquivo.
+# =============================================================================
+theme: light
+default_redirection_url: http://localhost:4200
+
+server:
+  address: 'tcp://0.0.0.0:9091'
+  endpoints:
+    authz:
+      forward-auth:
+        implementation: 'ForwardAuth'
+
+log:
+  level: info
+  format: text
+
+totp:
+  issuer: educa-mais
+  period: 30
+  skew: 1
+
+authentication_backend:
+  file:
+    path: /config/users_database.yml
+    password:
+      algorithm: argon2id
+      iterations: 3
+      memory: 65536
+      parallelism: 4
+      key_length: 32
+      salt_length: 16
+
+access_control:
+  default_policy: deny
+  rules:
+    - domain: 'auth.educa-mais.local'
+      policy: bypass
+    - domain: 'app.educa-mais.local'
+      subject: 'group:professores'
+      policy: one_factor
+    - domain: 'app.educa-mais.local'
+      subject: 'group:administradores'
+      policy: two_factor
+
+session:
+  name: educa_mais_session
+  secret: '{{ env "AUTHELIA_SESSION_SECRET" }}'
+  expiration: 8h
+  inactivity: 45m
+  cookies:
+    - domain: 'educa-mais.local'
+      authelia_url: 'https://auth.educa-mais.local'
+      default_redirection_url: 'http://localhost:4200'
+      same_site: lax
+      secure: false
+
+regulation:
+  max_retries: 5
+  find_time: 2m
+  ban_time: 10m
+
+storage:
+  encryption_key: '{{ env "AUTHELIA_STORAGE_ENCRYPTION_KEY" }}'
+  local:
+    path: /config/db.sqlite3
+
+notifier:
+  filesystem:
+    filename: /config/notifications.txt
+
+identity_providers:
+  oidc:
+    hmac_secret: '{{ env "AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET" }}'
+    jwks:
+      - key: '{{ secret "/config/secrets/jwks.key" }}'
+    lifespans:
+      access_token: 1h
+      id_token: 1h
+      refresh_token: 90d
+    claims_policies:
+      educa-mais:
+        id_token: ['email', 'email_verified', 'name', 'groups']
+    scopes:
+      - openid
+      - profile
+      - email
+      - groups
+    clients:
+      # Client confidencial usado pela API Spring Boot (fluxo authorization_code + PKCE).
+      - client_id: educa-mais
+        client_name: Educa Mais API
+        client_secret: '$pbkdf2-sha512$310000$c8b1b9ff2c7f4a5b$aBcDeFgHiJkLmNoPqRsTuVwXyZ0123456789abcdef'
+        public: false
+        authorization_policy: one_factor
+        claims_policy: educa-mais
+        redirect_uris:
+          - 'http://localhost:8080/login/oauth2/code/authelia'
+          - 'http://localhost:4200/auth/callback'
+        scopes: ['openid', 'profile', 'email', 'groups']
+        userinfo_signed_response_alg: none
+        consent_mode: implicit

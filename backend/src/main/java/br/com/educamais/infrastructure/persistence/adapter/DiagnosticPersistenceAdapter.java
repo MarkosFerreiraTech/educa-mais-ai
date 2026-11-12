@@ -1,0 +1,58 @@
+package br.com.educamais.infrastructure.persistence.adapter;
+
+import br.com.educamais.domain.model.DiagnosticAttempt;
+import br.com.educamais.domain.model.DiagnosticQuestion;
+import br.com.educamais.domain.port.DiagnosticRepository;
+import br.com.educamais.infrastructure.persistence.EntityMapper;
+import br.com.educamais.infrastructure.persistence.entity.AttemptEntity;
+import br.com.educamais.infrastructure.persistence.entity.QuestionEntity;
+import br.com.educamais.infrastructure.persistence.jpa.AttemptJpaRepository;
+import br.com.educamais.infrastructure.persistence.jpa.QuestionJpaRepository;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import org.springframework.stereotype.Component;
+
+@Component
+public class DiagnosticPersistenceAdapter implements DiagnosticRepository {
+
+    private final QuestionJpaRepository questionRepository;
+    private final AttemptJpaRepository attemptRepository;
+
+    public DiagnosticPersistenceAdapter(QuestionJpaRepository questionRepository,
+                                        AttemptJpaRepository attemptRepository) {
+        this.questionRepository = questionRepository;
+        this.attemptRepository = attemptRepository;
+    }
+
+    @Override
+    public DiagnosticQuestion saveQuestion(DiagnosticQuestion question) {
+        QuestionEntity entity = question.id() == null
+                ? new QuestionEntity()
+                : questionRepository.findById(question.id()).orElseGet(QuestionEntity::new);
+        return EntityMapper.toDomain(questionRepository.save(EntityMapper.toEntity(entity, question)));
+    }
+
+    @Override
+    public Optional<DiagnosticQuestion> findQuestionById(UUID id) {
+        return questionRepository.findById(id).map(EntityMapper::toDomain);
+    }
+
+    @Override
+    public List<DiagnosticQuestion> findQuestionsByMissionId(UUID missionId) {
+        return questionRepository.findByMissionId(missionId).stream().map(EntityMapper::toDomain).toList();
+    }
+
+    @Override
+    public DiagnosticAttempt saveAttempt(DiagnosticAttempt attempt) {
+        AttemptEntity entity = attempt.id() == null
+                ? new AttemptEntity()
+                : attemptRepository.findById(attempt.id()).orElseGet(AttemptEntity::new);
+        return EntityMapper.toDomain(attemptRepository.save(EntityMapper.toEntity(entity, attempt)));
+    }
+
+    @Override
+    public List<DiagnosticAttempt> findAttemptsByStudentId(UUID studentId) {
+        return attemptRepository.findByStudentId(studentId).stream().map(EntityMapper::toDomain).toList();
+    }
+}

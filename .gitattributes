@@ -1,0 +1,8 @@
+* text=auto eol=lf
+
+*.java    text diff=java
+*.md      text
+*.png     binary
+*.jpg     binary
+*.jar     binary
+mvnw      text eol=lf

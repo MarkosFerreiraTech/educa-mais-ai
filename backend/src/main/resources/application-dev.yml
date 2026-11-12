@@ -1,0 +1,25 @@
+# Perfil de desenvolvimento: H2 em memoria (sem Docker) e dados de demonstracao.
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:h2:mem:educamais;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH}
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ${DB_PASSWORD:sa}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+    locations: classpath:db/migration/h2
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+educamais:
+  security:
+    cors-allowed-origins: http://localhost:4200,http://127.0.0.1:4200
+
+logging:
+  level:
+    br.com.educamais: DEBUG

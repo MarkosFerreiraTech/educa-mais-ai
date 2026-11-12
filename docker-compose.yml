@@ -1,0 +1,136 @@
+# =============================================================================
+# Educa Mais - ambiente local completo (Postgres + API + Web + Authelia + obs.)
+#
+#   docker compose up -d --build            # sobe tudo
+#   docker compose --profile observability up -d   # + Prometheus/Grafana
+#
+# Valores marcados como "troque-em-producao" sao apenas para desenvolvimento.
+# =============================================================================
+name: educa-mais
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: educa-mais-postgres
+    environment:
+      POSTGRES_DB: educamais
+      POSTGRES_USER: educamais
+      POSTGRES_PASSWORD: educamais
+      TZ: America/Recife
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U educamais -d educamais"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    networks: [educa-mais]
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: educa-mais-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-demo}
+      DB_URL: jdbc:postgresql://postgres:5432/educamais
+      DB_USER: educamais
+      DB_PASSWORD: educamais
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-com-pelo-menos-32-caracteres!!}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-0123456789abcdef0123456789abcdef}
+      SCHOOL_API_KEY: ${SCHOOL_API_KEY:-dev-school-api-key}
+      SCHOOL_HMAC_SECRET: ${SCHOOL_HMAC_SECRET:-dev-school-hmac-secret}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200}
+      GEMINI_ENABLED: ${GEMINI_ENABLED:-false}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
+      WHATSAPP_PROVIDER: ${WHATSAPP_PROVIDER:-DEMO}
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:-}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN:-}
+      TWILIO_WHATSAPP_FROM: ${TWILIO_WHATSAPP_FROM:-whatsapp:+14155238886}
+      EVOLUTION_API_URL: ${EVOLUTION_API_URL:-}
+      EVOLUTION_API_KEY: ${EVOLUTION_API_KEY:-}
+      AUTHELIA_ENABLED: ${AUTHELIA_ENABLED:-false}
+      AUTHELIA_ISSUER_URI: ${AUTHELIA_ISSUER_URI:-https://auth.educa-mais.local}
+      AUTHELIA_CLIENT_ID: ${AUTHELIA_CLIENT_ID:-educa-mais}
+      AUTHELIA_CLIENT_SECRET: ${AUTHELIA_CLIENT_SECRET:-troque-em-producao}
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+    networks: [educa-mais]
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        API_URL: ${API_URL:-http://localhost:8080/api/v1}
+    container_name: educa-mais-web
+    depends_on:
+      api:
+        condition: service_started
+    ports:
+      - "4200:80"
+    networks: [educa-mais]
+
+  # ---------------------------------------------------------------- Authelia
+  # IdP OIDC/SSO para professores e administradores (RF35 / RNF10).
+  authelia:
+    image: authelia/authelia:4.38
+    container_name: educa-mais-authelia
+    profiles: [sso]
+    volumes:
+      - ./infra/authelia:/config
+    environment:
+      TZ: America/Recife
+      AUTHELIA_JWT_SECRET: ${AUTHELIA_JWT_SECRET:-dev-authelia-jwt-secret-com-32-caracteres}
+      AUTHELIA_SESSION_SECRET: ${AUTHELIA_SESSION_SECRET:-dev-authelia-session-secret-32-chars}
+      AUTHELIA_STORAGE_ENCRYPTION_KEY: ${AUTHELIA_STORAGE_KEY:-dev-authelia-storage-key-32-chars}
+      AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET: ${AUTHELIA_OIDC_HMAC:-dev-authelia-oidc-hmac-32-caracteres}
+    ports:
+      - "9091:9091"
+    networks: [educa-mais]
+
+  # ------------------------------------------------------------ Observabilidade
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    container_name: educa-mais-prometheus
+    profiles: [observability]
+    volumes:
+      - ./infra/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    networks: [educa-mais]
+
+  grafana:
+    image: grafana/grafana:11.3.1
+    container_name: educa-mais-grafana
+    profiles: [observability]
+    depends_on: [prometheus]
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./infra/observability/grafana-dashboard.json:/etc/grafana/provisioning/dashboards/educa-mais.json:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    networks: [educa-mais]
+
+volumes:
+  postgres-data:
+  grafana-data:
+
+networks:
+  educa-mais:
+    driver: bridge

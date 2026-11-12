@@ -1,0 +1,39 @@
+name: "Bug"
+description: "Comportamento incorreto em relacao a especificacao."
+title: "[bug] "
+labels: ["tipo: bug"]
+body:
+  - type: textarea
+    id: descricao
+    attributes:
+      label: Descricao
+      description: O que aconteceu e o que era esperado.
+    validations:
+      required: true
+  - type: textarea
+    id: passos
+    attributes:
+      label: Passos para reproduzir
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: input
+    id: requisito
+    attributes:
+      label: Requisito afetado
+      placeholder: "RF17"
+  - type: dropdown
+    id: severidade
+    attributes:
+      label: Severidade
+      options: ["critica", "alta", "media", "baixa"]
+    validations:
+      required: true
+  - type: textarea
+    id: evidencias
+    attributes:
+      label: Evidencias (logs, prints, request/response)
+      description: Nao cole dados pessoais de alunos (LGPD).

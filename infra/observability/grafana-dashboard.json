@@ -1,0 +1,76 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "title": "Educa Mais · Agente de Recuperacao",
+  "uid": "educa-mais-agent",
+  "schemaVersion": 39,
+  "refresh": "30s",
+  "time": { "from": "now-6h", "to": "now" },
+  "templating": {
+    "list": [
+      {
+        "name": "application",
+        "type": "constant",
+        "current": { "value": "educa-mais-api" }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Missoes disparadas pelo agente (por minuto)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum(rate(educamais_mission_planned_total[5m])) * 60",
+          "legendFormat": "missoes/min"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Plano: LLM vs fallback",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        { "expr": "sum(rate(educamais_plan_source_llm_total[5m])) * 60", "legendFormat": "LLM" },
+        { "expr": "sum(rate(educamais_plan_source_fallback_total[5m])) * 60", "legendFormat": "fallback" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Latencia do planejamento (p95)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(educamais_agent_planning_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p95"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Recompensas concedidas",
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 8 },
+      "targets": [{ "expr": "sum(educamais_reward_granted_total)" }],
+      "options": { "reduceOptions": { "values": false }, "colorMode": "value" }
+    },
+    {
+      "type": "stat",
+      "title": "Notificacoes WhatsApp entregues",
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 8 },
+      "targets": [
+        { "expr": "sum(educamais_notification_delivered_total{channel=\"WHATSAPP\"})" }
+      ],
+      "options": { "reduceOptions": { "values": false }, "colorMode": "value" }
+    },
+    {
+      "type": "timeseries",
+      "title": "Eventos de falta recebidos (webhook)",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 16 },
+      "targets": [
+        { "expr": "sum(rate(educamais_attendance_received_total[5m])) * 60", "legendFormat": "faltas/min" },
+        { "expr": "sum(rate(educamais_attendance_duplicated_total[5m])) * 60", "legendFormat": "duplicadas/min" }
+      ]
+    }
+  ]
+}

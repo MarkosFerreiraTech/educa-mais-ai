@@ -1,0 +1,99 @@
+# ============================================================
+# Educa Mais - .gitignore
+# Ignora dependências, artefatos de build e arquivos sensíveis
+# ============================================================
+
+# --- SO / IDE ---
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.project
+.classpath
+.factorypath
+*.code-workspace
+
+# --- Java / Maven / Gradle ---
+target/
+build/
+out/
+*.class
+*.jar
+*.war
+*.ear
+!.mvn/wrapper/maven-wrapper.jar
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.properties.bak
+hs_err_pid*
+replay_pid*
+.gradle/
+*.hprof
+
+# --- Node / Angular ---
+node_modules/
+dist/
+.angular/
+coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.lerna/
+*.tsbuildinfo
+
+# --- Testes e relatórios ---
+surefire-reports/
+failsafe-reports/
+jacoco.exec
+jacoco-report/
+*.lcov
+test-results/
+playwright-report/
+blob-report/
+
+# --- Segurança: NUNCA versionar ---
+.env
+.env.*
+!.env.example
+!.env.example
+*.pem
+*.key
+*.p12
+*.jks
+*.keystore
+*.pfx
+*.crt
+*.cer
+*.der
+secrets.properties
+*.secret
+credentials.json
+service-account*.json
+application-local.yml
+application-local.properties
+application-prod.yml
+infra/authelia/users_database.yml
+infra/authelia/secrets/
+trivy-results*.sarif
+gitleaks-report.json
+dependency-check-report.html
+dependency-check-data/
+
+# --- Observabilidade / runtime ---
+logs/
+*.log
+*.pid
+*.pid.lock
+.terraform/
+*.tfstate
+*.tfstate.*
+.cache/
+coverage.xml
+
+# --- OS extras ---
+.Trash-*
