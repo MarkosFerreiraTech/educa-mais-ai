@@ -72,7 +72,11 @@ jobs:
               backend/target/failsafe-reports/*.txt backend/target/surefire-reports/*.txt 2>/dev/null | cut -c1-400
             grep -E "^\[ERROR\].*(error:|\.java:\[|cannot find symbol|does not exist|COMPILATION ERROR)" build.log | cut -c1-420
             grep -E "BUILD FAILURE|Tests run:.*Failures|You have [0-9]+ Checkstyle|ERROR.*Failed to execute" build.log | cut -c1-420
-            grep -E "UNEXPECTED_ERROR" build.log | cut -c1-420
+            grep -A10 "UNEXPECTED_ERROR" build.log | grep -E "UNEXPECTED_ERROR|Exception|at br\\.com\\.educamais" | cut -c1-420
+            for report in backend/target/failsafe-reports/*.txt backend/target/surefire-reports/*.txt; do
+              [ -f "$report" ] || continue
+              awk '/<<< (FAILURE|ERROR)/ {print} /^\s+(java|org)\.[A-Za-z.]*(Exception|Error)/ {print}' "$report" | head -8 | cut -c1-300
+            done
             tail -18 build.log | grep -vE "^\s*$" | cut -c1-420
           } | head -26 | while IFS= read -r line; do
             echo "::error title=CI::${line}"
