@@ -63,6 +63,8 @@ public class ApiExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleValidation(MethodArgumentNotValidException exception,
                                                      HttpServletRequest request) {
+        log.warn("VALIDATION_ERROR path={} erros={}", request.getRequestURI(),
+                exception.getBindingResult().getErrorCount(), exception);
         List<ApiError.FieldViolation> violations = exception.getBindingResult().getFieldErrors().stream()
                 .map(this::toViolation)
                 .toList();

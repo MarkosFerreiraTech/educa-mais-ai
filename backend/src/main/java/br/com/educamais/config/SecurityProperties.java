@@ -12,6 +12,7 @@ public class SecurityProperties {
     private String encryptionKey;
     private List<String> corsAllowedOrigins = List.of("http://localhost:4200");
     private Webhook webhook = new Webhook();
+    private RateLimit rateLimit = new RateLimit();
     private Authelia authelia = new Authelia();
 
     public String getEncryptionKey() {
@@ -28,6 +29,14 @@ public class SecurityProperties {
 
     public void setCorsAllowedOrigins(List<String> corsAllowedOrigins) {
         this.corsAllowedOrigins = corsAllowedOrigins;
+    }
+
+    public RateLimit getRateLimit() {
+        return rateLimit;
+    }
+
+    public void setRateLimit(RateLimit rateLimit) {
+        this.rateLimit = rateLimit;
     }
 
     public Webhook getWebhook() {
@@ -132,6 +141,28 @@ public class SecurityProperties {
 
         public void setAdminGroup(String adminGroup) {
             this.adminGroup = adminGroup;
+        }
+    }
+
+    /** Limites de requisicoes por minuto (RNF14). */
+    public static class RateLimit {
+        private int requestsPerMinute = 60;
+        private int loginRequestsPerMinute = 10;
+
+        public int getRequestsPerMinute() {
+            return requestsPerMinute;
+        }
+
+        public void setRequestsPerMinute(int requestsPerMinute) {
+            this.requestsPerMinute = requestsPerMinute;
+        }
+
+        public int getLoginRequestsPerMinute() {
+            return loginRequestsPerMinute;
+        }
+
+        public void setLoginRequestsPerMinute(int loginRequestsPerMinute) {
+            this.loginRequestsPerMinute = loginRequestsPerMinute;
         }
     }
 }

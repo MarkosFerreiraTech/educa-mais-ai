@@ -26,6 +26,9 @@ educamais:
       tolerance-seconds: 300
     authelia:
       enabled: false
+    rate-limit:
+      requests-per-minute: 10000
+      login-requests-per-minute: 10000
   agent:
     llm-enabled: false
     gemini-api-key: ""

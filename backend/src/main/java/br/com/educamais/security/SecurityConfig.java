@@ -70,7 +70,9 @@ public class SecurityConfig {
                                 writeProblem(response, 403, "ACCESS_DENIED",
                                         "Seu perfil nao tem permissao para este recurso")))
                 .addFilterBefore(new JwtAuthenticationFilter(jwtService), UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(new RateLimitFilter(), JwtAuthenticationFilter.class);
+                .addFilterBefore(new RateLimitFilter(properties.getRateLimit().getRequestsPerMinute(),
+                        properties.getRateLimit().getLoginRequestsPerMinute()),
+                        JwtAuthenticationFilter.class);
         return http.build();
     }
 
