@@ -47,6 +47,9 @@ jobs:
         if: failure()
         run: |
           {
+            echo "### Resumo do build (ultimas 120 linhas)"
+            tail -120 build.log
+            echo ""
             echo "### Diagnostico do build"
             grep -E "ERROR|error:|BUILD FAILURE|Tests run|WARN.*coverage" build.log | head -60
             echo ""
