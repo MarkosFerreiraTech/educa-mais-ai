@@ -53,8 +53,8 @@ jobs:
             echo "### Diagnostico do build"
             grep -E "ERROR|error:|BUILD FAILURE|Tests run|WARN.*coverage" build.log | head -60
             echo ""
-            echo "### Relatorios surefire"
-            for report in backend/target/surefire-reports/*.txt; do
+            echo "### Relatorios surefire/failsafe"
+            for report in backend/target/surefire-reports/*.txt backend/target/failsafe-reports/*.txt; do
               [ -f "$report" ] || continue
               echo "--- $(basename "$report")"
               head -60 "$report"
@@ -67,9 +67,9 @@ jobs:
           # Annotations (visiveis via API) com o essencial de cada falha
           {
             grep -E "^\[ERROR\]" build.log | grep -vE "^\[ERROR\] *$|Help 1|re-run|full stack|Re-run Maven|For more information" | tail -25
-            for report in backend/target/surefire-reports/*.txt; do
+            for report in backend/target/surefire-reports/*.txt backend/target/failsafe-reports/*.txt; do
               [ -f "$report" ] || continue
-              grep -E "<<< (FAILURE|ERROR)|^(org|java)\..*(Error|Exception)|expected|but was|Rule .*violated|was violated" "$report" | head -12
+              grep -E "<<< (FAILURE|ERROR)|^Caused by|^(org|java|jakarta|com)\..*(Error|Exception)|expected|but was|Rule .*violated|was violated|Unsatisfied|No qualifying bean|Migration|Schema-validation" "$report" | head -14
             done
             tail -25 build.log | grep -vE "^\s*$"
           } | head -45 | while IFS= read -r line; do
@@ -98,7 +98,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: surefire-reports
-          path: backend/target/surefire-reports/
+          path: |
+            backend/target/surefire-reports/
+            backend/target/failsafe-reports/
           retention-days: 7
           if-no-files-found: ignore
 
