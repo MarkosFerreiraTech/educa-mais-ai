@@ -47,6 +47,10 @@ public class MissionService {
             throw new BusinessRuleException("MISSION_NOT_STARTABLE", "Missao nao pode ser iniciada");
         }
         if (!mission.status().isFinished()) {
+            // RN02: o aluno so inicia uma missao que ja lhe foi notificada.
+            if (mission.status() == MissionStatus.PLANNED) {
+                mission.markNotified();
+            }
             mission.start();
             mission = missionRepository.save(mission);
         }
