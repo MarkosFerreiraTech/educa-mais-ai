@@ -64,7 +64,15 @@ jobs:
             tail -40 build.log
           } >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
 
-          # Annotations (visiveis via API): apenas a causa raiz, truncada
+          # Falhas por teste com a primeira linha da excecao (classe.metodo: mensagem)
+          for xml in backend/target/failsafe-reports/*.xml backend/target/surefire-reports/*.xml; do
+            [ -f "$xml" ] || continue
+            tr '\n' ' ' < "$xml" | grep -oE '<testcase name="[^"]{1,80}"[^>]*>\s*<(failure|error)[^>]*message="[^"]{0,300}"' \
+              | sed -E 's/<testcase name="([^"]*)".*message="([^"]*)"/\1 :: \2/' | head -10 | cut -c1-360
+          done
+          # Causa raiz (runtime) do log dos testes
+          grep -hE "UNEXPECTED_ERROR|DuplicateKey|Constrain|IllegalArgument|HttpMessageNotReadable|SystemException" \
+            backend/target/test-server.log 2>/dev/null | tail -8 | cut -c1-360
           {
             grep -hE "Caused by:|^Error creating bean|Schema-validation|Migration V|UnsatisfiedDependency|No qualifying bean|BeanCreationException" \
               backend/target/failsafe-reports/*.txt backend/target/surefire-reports/*.txt 2>/dev/null | cut -c1-420
