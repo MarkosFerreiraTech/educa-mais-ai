@@ -43,6 +43,7 @@ import br.com.educamais.infrastructure.persistence.entity.StudentEntity;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Mapeamento explicito entre entidades JPA e o modelo de dominio (P5: DTO x Entity).
@@ -57,7 +58,7 @@ public final class EntityMapper {
 
     public static StudentEntity toEntity(Student student) {
         StudentEntity entity = new StudentEntity();
-        entity.setId(student.id());
+        entity.setId(student.id() == null ? UUID.randomUUID() : student.id());
         entity.setName(student.name());
         entity.setEmail(student.email());
         entity.setEmailHash(CryptoSupport.encryptor().blindIndex(student.email()));
@@ -117,7 +118,7 @@ public final class EntityMapper {
 
     public static LessonEntity toEntity(Lesson lesson) {
         LessonEntity entity = new LessonEntity();
-        entity.setId(lesson.id());
+        entity.setId(lesson.id() == null ? UUID.randomUUID() : lesson.id());
         entity.setClassroomId(lesson.classroomId());
         entity.setSubject(lesson.subject());
         entity.setTopic(lesson.topic());
@@ -140,7 +141,7 @@ public final class EntityMapper {
 
     public static AttendanceEntity toEntity(Attendance attendance) {
         AttendanceEntity entity = new AttendanceEntity();
-        entity.setId(attendance.id());
+        entity.setId(attendance.id() == null ? UUID.randomUUID() : attendance.id());
         entity.setStudentId(attendance.studentId());
         entity.setLessonId(attendance.lessonId());
         entity.setEventId(attendance.eventId());
@@ -160,7 +161,7 @@ public final class EntityMapper {
 
     public static MissionEntity toEntity(Mission mission) {
         MissionEntity entity = new MissionEntity();
-        entity.setId(mission.id());
+        entity.setId(mission.id() == null ? UUID.randomUUID() : mission.id());
         entity.setAttendanceId(mission.attendanceId());
         entity.setStudentId(mission.studentId());
         entity.setLessonId(mission.lessonId());
@@ -176,7 +177,7 @@ public final class EntityMapper {
 
     public static MissionStepEntity toEntity(MissionStep step) {
         MissionStepEntity entity = new MissionStepEntity();
-        entity.setId(step.id());
+        entity.setId(step.id() == null ? UUID.randomUUID() : step.id());
         entity.setStepOrder(step.order());
         entity.setObjective(step.objective());
         entity.setExplanation(step.explanation());
@@ -227,7 +228,7 @@ public final class EntityMapper {
 
     public static RewardEntity toEntity(RewardEntry entry) {
         RewardEntity entity = new RewardEntity();
-        entity.setId(entry.id());
+        entity.setId(entry.id() == null ? UUID.randomUUID() : entry.id());
         entity.setStudentId(entry.studentId());
         entity.setMissionId(entry.missionId());
         entity.setType(entry.type().name());
@@ -247,7 +248,7 @@ public final class EntityMapper {
 
     public static NotificationEntity toEntity(Notification notification) {
         NotificationEntity entity = new NotificationEntity();
-        entity.setId(notification.id());
+        entity.setId(notification.id() == null ? UUID.randomUUID() : notification.id());
         entity.setStudentId(notification.studentId());
         entity.setMissionId(notification.missionId());
         entity.setChannel(notification.channel().name());
@@ -277,7 +278,7 @@ public final class EntityMapper {
 
     public static ReportEntity toEntity(TeacherReport report) {
         ReportEntity entity = new ReportEntity();
-        entity.setId(report.id());
+        entity.setId(report.id() == null ? UUID.randomUUID() : report.id());
         entity.setMissionId(report.missionId());
         entity.setStudentId(report.studentId());
         entity.setTeacherId(report.teacherId());
@@ -301,7 +302,7 @@ public final class EntityMapper {
 
     public static QuestionEntity toEntity(DiagnosticQuestion question) {
         QuestionEntity entity = new QuestionEntity();
-        entity.setId(question.id());
+        entity.setId(question.id() == null ? UUID.randomUUID() : question.id());
         entity.setMissionId(question.missionId());
         entity.setStepId(question.stepId());
         entity.setPrompt(question.prompt());
@@ -323,7 +324,7 @@ public final class EntityMapper {
 
     public static AttemptEntity toEntity(DiagnosticAttempt attempt) {
         AttemptEntity entity = new AttemptEntity();
-        entity.setId(attempt.id());
+        entity.setId(attempt.id() == null ? UUID.randomUUID() : attempt.id());
         entity.setQuestionId(attempt.questionId());
         entity.setStudentId(attempt.studentId());
         entity.setAnswer(attempt.answer());
@@ -344,7 +345,7 @@ public final class EntityMapper {
 
     public static ShopItemEntity toEntity(ShopItem item) {
         ShopItemEntity entity = new ShopItemEntity();
-        entity.setId(item.id());
+        entity.setId(item.id() == null ? UUID.randomUUID() : item.id());
         entity.setCode(item.code());
         entity.setName(item.name());
         entity.setCategory(item.category());
