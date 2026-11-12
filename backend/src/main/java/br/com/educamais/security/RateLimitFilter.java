@@ -18,11 +18,15 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class RateLimitFilter extends OncePerRequestFilter {
 
     private static final int DEFAULT_LIMIT = 60;
-    private static final int LOGIN_LIMIT = 10;
+    private static final int LOGIN_LIMIT = 30;
     private static final long WINDOW_SECONDS = 60;
     private static final String LOGIN_PATH = "/api/v1/auth/login";
 
     private final Map<String, Window> windows = new ConcurrentHashMap<>();
+
+    /** Instancia sem estado compartilhado, usada pelos testes de integracao. */
+    public RateLimitFilter() {
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)

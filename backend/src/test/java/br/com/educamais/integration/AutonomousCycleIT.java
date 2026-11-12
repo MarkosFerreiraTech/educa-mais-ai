@@ -230,6 +230,7 @@ class AutonomousCycleIT {
     @Test
     @DisplayName("Cadastro rejeita senha fraca com VALIDATION_ERROR")
     void validacoesDeCadastro() throws Exception {
+        // "fraca": sem numero e sem simbolo -> Bean Validation rejeita antes do servico
         String body = """
                 {"name":"Ana","email":"ana@escola.br","password":"fraca","interests":["futebol"]}
                 """;
@@ -241,9 +242,10 @@ class AutonomousCycleIT {
     @Test
     @DisplayName("Login com credenciais invalidas retorna 401")
     void loginInvalido() throws Exception {
+        // e-mail unico por execucao: o rate limit de login (10/min) e por IP e compartilhado entre testes
         String body = """
-                {"email":"ninguem@escola.br","password":"Senha@2026"}
-                """;
+                {"email":"ninguem-%s@escola.br","password":"Senha@2026"}
+                """.formatted(UUID.randomUUID());
         mockMvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("INVALID_CREDENTIALS"));
