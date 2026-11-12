@@ -36,6 +36,9 @@ public class DemoDataSeeder implements ApplicationRunner {
     public static final UUID DEMO_LESSON_ID = UUID.fromString("33333333-3333-3333-3333-333333333333");
     public static final UUID DEMO_STUDENT_ID = UUID.fromString("44444444-4444-4444-4444-444444444444");
 
+    /** E-mail do aluno de demonstracao (chave natural da idempotencia do seed). */
+    public static final String DEMO_EMAIL = "ana.souza@escola.br";
+
     /** Senha do aluno de demonstracao (documentada no README e usada pelos scripts). */
     public static final String DEMO_PASSWORD = "Demo@2026";
 
@@ -62,16 +65,21 @@ public class DemoDataSeeder implements ApplicationRunner {
     }
 
     private void seedStudent() {
-        if (studentRepository.findById(DEMO_STUDENT_ID).isPresent()) {
+        // Idempotencia pela chave natural (e-mail), nao pelo id: students.email_hash e UNIQUE,
+        // entao um aluno demo gravado por uma execucao anterior com outro UUID fazia o INSERT
+        // violar students_email_hash_key e derrubar o startup. Checar por e-mail cobre os dois
+        // casos (mesmo id e ids diferentes). O id fixo na criacao mantem DEMO_STUDENT_ID valido
+        // para os scripts e para a documentacao.
+        if (studentRepository.findByEmail(DEMO_EMAIL).isPresent()) {
             return;
         }
-        Student student = Student.register("Ana Souza", "ana.souza@escola.br", "+5581999998888",
+        Student student = new Student(DEMO_STUDENT_ID, "Ana Souza", DEMO_EMAIL, "+5581999998888",
                 LocalDate.of(2012, 4, 10), passwordHasher.hash(DEMO_PASSWORD),
-                DEMO_SCHOOL_ID, DEMO_CLASSROOM_ID, true);
+                DEMO_SCHOOL_ID, DEMO_CLASSROOM_ID, null, true);
         student.defineInterests(List.of(Interest.of(InterestCode.FOOTBALL, 5),
                 Interest.of(InterestCode.GAMES, 3)));
         studentRepository.save(student);
-        log.info("DEMO_STUDENT_CREATED email=ana.souza@escola.br credencial documentada no README");
+        log.info("DEMO_STUDENT_CREATED email={} credencial documentada no README", DEMO_EMAIL);
     }
 
     private void seedLesson() {
