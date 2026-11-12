@@ -33,8 +33,11 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: educa-mais-api
-    # Se a API cair, o compose tenta de novo; `docker compose logs api` mostra o stacktrace.
-    restart: unless-stopped
+    # on-failure com 3 tentativas: erro de CONFIGURACAO (migration, driver, seed) falha sempre,
+    # e reiniciar para sempre so polui `docker compose logs` com varios startups — foi assim que
+    # um crash-loop mascarou o erro real do Flyway. Com o limite, o container para e o ultimo
+    # stacktrace fica legivel no fim do log.
+    restart: on-failure:3
     depends_on:
       postgres:
         condition: service_healthy

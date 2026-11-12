@@ -44,6 +44,7 @@ class DemoDataSeederTest {
         lessonRepository = mock(LessonRepository.class);
         shopRepository = mock(ShopRepository.class);
         when(studentRepository.findById(any())).thenReturn(Optional.empty());
+        when(studentRepository.findByEmail(any())).thenReturn(Optional.empty());
         when(lessonRepository.findById(any())).thenReturn(Optional.empty());
         when(shopRepository.findAll()).thenReturn(List.of());
     }
@@ -68,16 +69,49 @@ class DemoDataSeederTest {
     }
 
     @Test
-    @DisplayName("e idempotente: aluno ja existente nao e recriado")
+    @DisplayName("e idempotente: aluno demo ja existente nao e recriado")
     void naoRecriaAlunoExistente() {
-        when(studentRepository.findById(DemoDataSeeder.DEMO_STUDENT_ID))
-                .thenReturn(Optional.of(Student.register("Existente", "existente@escola.br", null, null,
-                        passwordHasher.hash("qualquer"), DemoDataSeeder.DEMO_SCHOOL_ID,
-                        DemoDataSeeder.DEMO_CLASSROOM_ID, false)));
+        when(studentRepository.findByEmail(DemoDataSeeder.DEMO_EMAIL))
+                .thenReturn(Optional.of(studentExistente()));
 
         new DemoDataSeeder(studentRepository, lessonRepository, shopRepository, passwordHasher).run(null);
 
         verify(studentRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("idempotente tambem quando o aluno demo tem OUTRO id (email_hash e UNIQUE)")
+    void naoRecriaAlunoComOutroIdMasMesmoEmail() {
+        // Cenario real do Docker: um aluno demo de execucao anterior ficou no banco com UUID
+        // aleatorio. A checagem por id nao o encontrava, o INSERT acontecia e o startup morria:
+        //   duplicate key value violates unique constraint "students_email_hash_key"
+        when(studentRepository.findById(DemoDataSeeder.DEMO_STUDENT_ID)).thenReturn(Optional.empty());
+        when(studentRepository.findByEmail(DemoDataSeeder.DEMO_EMAIL))
+                .thenReturn(Optional.of(studentExistente()));
+
+        new DemoDataSeeder(studentRepository, lessonRepository, shopRepository, passwordHasher).run(null);
+
+        verify(studentRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("o aluno demo e criado com o UUID fixo (para o seed ser encontravel por id)")
+    void criaAlunoComIdFixo() {
+        new DemoDataSeeder(studentRepository, lessonRepository, shopRepository, passwordHasher).run(null);
+
+        ArgumentCaptor<Student> captor = ArgumentCaptor.forClass(Student.class);
+        verify(studentRepository).save(captor.capture());
+
+        assertThat(captor.getValue().id())
+                .as("id aleatorio aqui fazia a idempotencia por id nunca funcionar")
+                .isEqualTo(DemoDataSeeder.DEMO_STUDENT_ID);
+        assertThat(captor.getValue().email()).isEqualTo(DemoDataSeeder.DEMO_EMAIL);
+    }
+
+    private Student studentExistente() {
+        return new Student(DemoDataSeeder.DEMO_STUDENT_ID, "Ana Souza", DemoDataSeeder.DEMO_EMAIL,
+                null, null, passwordHasher.hash("qualquer"), DemoDataSeeder.DEMO_SCHOOL_ID,
+                DemoDataSeeder.DEMO_CLASSROOM_ID, null, true);
     }
 
     /** Adapter fino sobre o BCrypt real, com o mesmo custo do bean de producao. */
