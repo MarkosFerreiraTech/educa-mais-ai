@@ -68,7 +68,8 @@ jobs:
           {
             grep -hE "Caused by:|^Error creating bean|Schema-validation|Migration V|UnsatisfiedDependency|No qualifying bean|BeanCreationException" \
               backend/target/failsafe-reports/*.txt backend/target/surefire-reports/*.txt 2>/dev/null | cut -c1-420
-            grep -hE "<<< (FAILURE|ERROR)" backend/target/failsafe-reports/*.txt backend/target/surefire-reports/*.txt 2>/dev/null | cut -c1-200
+            grep -hE "AssertionFailedError|AssertionError|expected:|but was|Status expected|Verification failed|Wanted but not invoked|JSON path" \
+              backend/target/failsafe-reports/*.txt backend/target/surefire-reports/*.txt 2>/dev/null | cut -c1-400
             grep -E "^\[ERROR\].*(error:|cannot find symbol|does not exist)" build.log | cut -c1-420
           } | head -24 | while IFS= read -r line; do
             echo "::error title=CI::${line}"
