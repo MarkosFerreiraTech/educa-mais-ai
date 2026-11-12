@@ -46,20 +46,31 @@ jobs:
       - name: Publicar diagnosticos no resumo (falha)
         if: failure()
         run: |
-          echo "### Diagnostico do build" >> "$GITHUB_STEP_SUMMARY"
-          grep -E "ERROR|error:|BUILD FAILURE|Tests run" build.log | head -80 >> "$GITHUB_STEP_SUMMARY"
-          echo "### Detalhe dos testes" >> "$GITHUB_STEP_SUMMARY"
-          for report in backend/target/surefire-reports/*.txt; do
-            [ -f "$report" ] || continue
-            head -40 "$report" >> "$GITHUB_STEP_SUMMARY"
-          done
-          # Annotations: erros de compilacao + falhas de teste (linhas mais informativas)
           {
-            grep -E "^\[ERROR\].*(error:|cannot find symbol|does not exist)" build.log
-            grep -hE "AssertionFailedError|expected:|but was:|AssertionError|ArchUnit|Rule .* was violated" \
-              backend/target/surefire-reports/*.txt 2>/dev/null
-          } | head -30 | while IFS= read -r line; do
-            echo "::error title=Teste::${line:0:900}"
+            echo "### Diagnostico do build"
+            grep -E "ERROR|error:|BUILD FAILURE|Tests run|WARN.*coverage" build.log | head -60
+            echo ""
+            echo "### Relatorios surefire"
+            for report in backend/target/surefire-reports/*.txt; do
+              [ -f "$report" ] || continue
+              echo "--- $(basename "$report")"
+              head -60 "$report"
+            done
+            echo ""
+            echo "### Tail do build"
+            tail -40 build.log
+          } >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
+
+          # Annotations (visiveis via API) com o essencial de cada falha
+          {
+            grep -E "^\[ERROR\]" build.log | grep -vE "^\[ERROR\] *$|Help 1|re-run|full stack|Re-run Maven|For more information" | tail -25
+            for report in backend/target/surefire-reports/*.txt; do
+              [ -f "$report" ] || continue
+              grep -E "<<< (FAILURE|ERROR)|^(org|java)\..*(Error|Exception)|expected|but was|Rule .*violated|was violated" "$report" | head -12
+            done
+            tail -25 build.log | grep -vE "^\s*$"
+          } | head -45 | while IFS= read -r line; do
+            echo "::error title=CI::${line:0:880}"
           done
 
       - name: Publicar relatorio de testes
