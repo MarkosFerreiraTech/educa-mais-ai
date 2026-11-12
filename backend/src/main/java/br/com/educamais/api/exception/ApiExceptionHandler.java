@@ -65,10 +65,12 @@ public class ApiExceptionHandler {
     public ResponseEntity<ApiError> handleMethodValidation(
             org.springframework.web.method.annotation.HandlerMethodValidationException exception,
             HttpServletRequest request) {
-        List<ApiError.FieldViolation> violations = exception.getAllValidationResults().stream()
+        // API do Spring 7: ParameterValidationResult -> getMethodParameter()/getResolvableErrors()
+        List<ApiError.FieldViolation> violations = exception.getParameterValidationResults().stream()
                 .flatMap(result -> result.getResolvableErrors().stream()
-                        .map(error -> new ApiError.FieldViolation(String.valueOf(result.getMethodParameter()
-                                .getParameterName()), error.getDefaultMessage())))
+                        .map(error -> new ApiError.FieldViolation(
+                                result.getMethodParameter().getParameterName(),
+                                error.getDefaultMessage())))
                 .toList();
         log.warn("VALIDATION_ERROR path={} origem=method-validation violacoes={}", request.getRequestURI(),
                 violations);
