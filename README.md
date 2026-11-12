@@ -68,8 +68,11 @@ O perfil `demo` já cria a escola, a turma, um aluno (`ana.souza@escola.br` / `D
 
 ```bash
 # Backend (Java 21 + Maven Wrapper)
+#   dev  → H2 em memoria (nao precisa de Docker)
+#   demo → Postgres (precisa do `docker compose up postgres`)
 cd backend
-SPRING_PROFILES_ACTIVE=demo ./mvnw spring-boot:run        # http://localhost:8080
+SPRING_PROFILES_ACTIVE=dev  ./mvnw spring-boot:run       # http://localhost:8080 (H2)
+SPRING_PROFILES_ACTIVE=demo ./mvnw spring-boot:run       # http://localhost:8080 (Postgres)
 
 # Frontend (Node 22)
 cd frontend
@@ -81,6 +84,28 @@ Uma aula de demonstração e o webhook podem ser disparados com:
 
 ```bash
 ./scripts/demo-ciclo.sh      # registra falta assinada e mostra missão + notificações
+```
+
+### Se `docker compose up` falhar
+
+A API precisa subir antes do web. Verifique nesta ordem:
+
+```bash
+docker compose ps                      # api deve aparecer como (healthy)
+docker compose logs --tail=100 api     # stacktrace do Spring, se morreu no startup
+```
+
+| Sintoma | Causa provável | Correção |
+| --- | --- | --- |
+| `api exited (1)` + `Failed to determine a suitable driver class` | perfil `demo` herdando o driver H2 do `dev` | corrigido: `demo` declara `org.postgresql.Driver` |
+| `api exited (1)` + `Schema-validation: missing table/column` | migration do Postgres divergente da entidade | rodar `docker compose down -v` para recriar o volume |
+| `401`/`500` ao cadastrar aluno no app | `schoolId`/`classroomId` inexistentes (FK) | as migrations V2 já semeiam escola e turma de demo |
+| login do aluno demo retorna `401` | hash `{noop}` no seeder | corrigido: seeder usa BCrypt real |
+
+Para recomeçar do zero (apaga volumes, inclusive o banco):
+
+```bash
+docker compose down -v && docker compose up -d --build
 ```
 
 ---

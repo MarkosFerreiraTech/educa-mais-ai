@@ -78,7 +78,12 @@ application-local.yml
 application-local.properties
 application-prod.yml
 infra/authelia/users_database.yml
-infra/authelia/secrets/
+!infra/authelia/users_database.example.yml
+# Chaves do Authelia: a de producao fica fora do Git; a de DEMO (jwks.demo.key) e
+# versionada para o `docker compose --profile sso` funcionar em clone limpo.
+infra/authelia/secrets/*
+!infra/authelia/secrets/jwks.key
+!infra/authelia/secrets/README.md
 trivy-results*.sarif
 gitleaks-report.json
 dependency-check-report.html

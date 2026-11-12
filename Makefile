@@ -14,7 +14,7 @@ help: ## Lista os alvos disponiveis
 		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-22s\033[0m %s\n", $$1, $$2}'
 
 # ------------------------------------------------------------------- backend
-.PHONY: api-build api-test api-run api-lint api-coverage
+.PHONY: api-build api-test api-run api-run-demo api-lint api-coverage
 api-build: ## Compila o backend empacotando o jar
 	cd $(API_DIR) && $(MVN) -B -ntp clean package -DskipTests
 
@@ -27,7 +27,10 @@ api-coverage: api-test ## Gera e abre o relatorio JaCoCo
 api-lint: ## Checkstyle + SpotBugs
 	cd $(API_DIR) && $(MVN) -B -ntp checkstyle:check spotbugs:check
 
-api-run: ## Sobe a API em modo demo (H2/Postgres local, Gemini desligado)
+api-run: ## Sobe a API em modo dev (H2 em memoria, Gemini desligado)
+	cd $(API_DIR) && SPRING_PROFILES_ACTIVE=dev $(MVN) spring-boot:run
+
+api-run-demo: ## Sobe a API em modo demo contra um Postgres ja em execucao
 	cd $(API_DIR) && SPRING_PROFILES_ACTIVE=demo $(MVN) spring-boot:run
 
 # ------------------------------------------------------------------ frontend

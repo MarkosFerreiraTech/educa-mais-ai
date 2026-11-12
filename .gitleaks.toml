@@ -23,6 +23,11 @@ paths = [
   '''^backend/src/test/resources/application-test\.yml$''',
   '''^backend/src/main/resources/application\.yml$''',
   '''^infra/authelia/users_database\.yml$''',
+  '''^infra/authelia/users_database\.example\.yml$''',
+  # Chave RSA de DEMONSTRACAO do OIDC (perfil `sso`), publica por design para o
+  # `docker compose --profile sso up` funcionar em clone limpo. Producao usa
+  # Secrets Manager e o caminho real e bloqueado pelo .gitignore.
+  '''^infra/authelia/secrets/jwks\.key$''',
   '''^infra/observability/grafana-dashboard\.json$''',
   '''^scripts/demo-ciclo\.sh$''',
   '''^scripts/setup-gitflow\.sh$''',

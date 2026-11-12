@@ -16,6 +16,10 @@ API="${API:-http://localhost:8080/api/v1}"
 API_KEY="${SCHOOL_API_KEY:-dev-school-api-key}"
 HMAC_SECRET="${SCHOOL_HMAC_SECRET:-dev-school-hmac-secret}"
 LESSON_ID="${LESSON_ID:-33333333-3333-3333-3333-333333333333}"
+# Escola e turma de demonstracao: sem estes IDs o cadastro viola a FK de students
+# (school_id/classroom_id). Os UUIDs vem das migrations V2 (esquema de referencia).
+SCHOOL_ID="${SCHOOL_ID:-11111111-1111-1111-1111-111111111111}"
+CLASSROOM_ID="${CLASSROOM_ID:-22222222-2222-2222-2222-222222222222}"
 EMAIL="aluno.demo+$(date +%s)@escola.br"
 PASSWORD='Senha@2026'
 
@@ -24,7 +28,8 @@ say() { printf '\n\033[36m== %s\033[0m\n' "$1"; }
 say "1/5 Cadastrando aluno ($EMAIL)"
 REGISTER=$(curl -sS -X POST "$API/auth/register" -H 'Content-Type: application/json' -d @- <<JSON
 {"name":"Ana Demo","email":"$EMAIL","phone":"+5581999998888","birthDate":"2012-04-10",
- "password":"$PASSWORD","interests":["futebol","games"],"whatsAppOptIn":true}
+ "password":"$PASSWORD","interests":["futebol","games"],"whatsAppOptIn":true,
+ "schoolId":"$SCHOOL_ID","classroomId":"$CLASSROOM_ID","guardianConsent":"ACEITE"}
 JSON
 )
 TOKEN=$(printf '%s' "$REGISTER" | python3 -c 'import json,sys; print(json.load(sys.stdin)["accessToken"])')

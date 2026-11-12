@@ -33,6 +33,8 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: educa-mais-api
+    # Se a API cair, o compose tenta de novo; `docker compose logs api` mostra o stacktrace.
+    restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
@@ -62,11 +64,12 @@ services:
     ports:
       - "8080:8080"
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health"]
+      # curl: instalado no Dockerfile da API (alpine nao traz wget/curl)
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health"]
       interval: 10s
       timeout: 5s
-      retries: 12
-      start_period: 40s
+      retries: 18
+      start_period: 60s
     networks: [educa-mais]
 
   web:
@@ -78,9 +81,17 @@ services:
     container_name: educa-mais-web
     depends_on:
       api:
-        condition: service_started
+        # service_healthy (nao service_started): evita subir o nginx enquanto a API ainda
+        # inicializa e devolver 502 nas primeiras requisicoes do avaliador.
+        condition: service_healthy
     ports:
-      - "4200:80"
+      - "4200:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/healthz"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     networks: [educa-mais]
 
   # ---------------------------------------------------------------- Authelia
@@ -89,6 +100,11 @@ services:
     image: authelia/authelia:4.38
     container_name: educa-mais-authelia
     profiles: [sso]
+    restart: unless-stopped
+    # Caminho explicito da config; se o bind mount falhar o erro aparece no log em vez de
+    # um crash-loop silencioso.
+    command: ["--config", "/config/configuration.yml"]
+    # Bind mount read-write de proposito: o Authelia grava db.sqlite3 e notifications.txt em /config.
     volumes:
       - ./infra/authelia:/config
     environment:
@@ -99,6 +115,13 @@ services:
       AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET: ${AUTHELIA_OIDC_HMAC:-dev-authelia-oidc-hmac-32-caracteres}
     ports:
       - "9091:9091"
+    healthcheck:
+      # `authelia config validate` valida sintaxe e valores antes de expor o servico
+      test: ["CMD", "authelia", "config", "validate", "--config", "/config/configuration.yml"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
     networks: [educa-mais]
 
   # ------------------------------------------------------------ Observabilidade
