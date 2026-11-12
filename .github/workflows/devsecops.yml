@@ -81,7 +81,7 @@ jobs:
       - name: Build da imagem da API
         run: docker build -t educa-mais-api:${{ github.sha }} ./backend
       - name: Escanear imagem
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@master
         with:
           image-ref: educa-mais-api:${{ github.sha }}
           format: sarif
