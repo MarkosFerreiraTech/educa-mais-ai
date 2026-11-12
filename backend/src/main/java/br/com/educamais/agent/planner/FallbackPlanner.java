@@ -22,6 +22,7 @@ public class FallbackPlanner {
                 ? syllabus.learningObjectives()
                 : List.of("Compreender o conteudo da aula: " + request.lesson().topic());
         String hint = request.interestHint();
+        String interest = request.interestLabel();
         String topic = request.lesson().topic();
 
         List<MissionPlan.PlannedStep> steps = new ArrayList<>();
@@ -33,14 +34,14 @@ public class FallbackPlanner {
             steps.add(new MissionPlan.PlannedStep(
                     objective,
                     "Objetivo %d: %s. Vamos entender a ideia central de %s comparando partes de um todo "
-                            .concat("com situacoes do seu interesse: %s.").formatted(index, objective, topic, hint),
-                    "Exemplo com %s: divida uma situacao em partes iguais e conte quantas voce usou.".formatted(hint)));
+                            .concat("com situacoes de %s: %s.").formatted(index, objective, topic, interest, hint),
+                    "Exemplo com %s: divida uma situacao em partes iguais e conte quantas voce usou.".formatted(interest)));
             index++;
         }
         while (steps.size() < MissionPlan.MIN_STEPS) {
             steps.add(new MissionPlan.PlannedStep(
                     "Praticar " + topic,
-                    "Agora vamos praticar %s com um exemplo passo a passo inspirado em %s.".formatted(topic, hint),
+                    "Agora vamos praticar %s com um exemplo passo a passo inspirado em %s.".formatted(topic, interest),
                     "Exemplo guiado: identifique as partes, conte as partes usadas e escreva o resultado."));
         }
         return new MissionPlan(steps, PlanSource.FALLBACK);

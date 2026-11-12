@@ -12,6 +12,11 @@ public record RecoveryPlanRequest(Student student, Lesson lesson, InterestCode p
         return primaryInterest == null ? "cotidiano do aluno" : primaryInterest.contextHint();
     }
 
+    /** Rotulo legivel do interesse (ex.: "futebol"), usado nos textos do plano deterministico. */
+    public String interestLabel() {
+        return primaryInterest == null ? "cotidiano" : primaryInterest.label().toLowerCase();
+    }
+
     public String firstName() {
         return student == null ? "Aluno" : student.firstName();
     }
