@@ -63,7 +63,7 @@ class StudentServiceTest {
         GamificationProfile profile = service.profileOf(studentId);
 
         assertThat(profile.studentId()).isEqualTo(studentId);
-        assertThat(profile.xp()).isZero();
+        assertThat(profile.totalXp()).isZero();
         verify(gamificationRepository).save(any(GamificationProfile.class));
     }
 
@@ -84,7 +84,7 @@ class StudentServiceTest {
 
         Student updated = service.updatePreferences(studentId, false, "+5581988887777");
 
-        assertThat(updated.whatsAppOptIn()).isFalse();
+        assertThat(updated.notificationOptIn()).isFalse();
         assertThat(updated.phone()).isEqualTo("+5581988887777");
         verify(studentRepository).save(student);
     }
