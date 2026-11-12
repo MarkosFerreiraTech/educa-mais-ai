@@ -74,13 +74,16 @@ class AutonomousCycleIT {
         return json(result).path("id").asText();
     }
 
+    /** Turma semeada em db/migration/h2/V2 (necessaria por causa da FK de lessons). */
+    private static final UUID SEEDED_CLASSROOM_ID = UUID.fromString("22222222-2222-2222-2222-222222222222");
+
     private UUID createLesson() {
         Syllabus syllabus = new Syllabus(
                 List.of("Comparar fracoes com denominadores diferentes",
                         "Representar fracoes na reta numerica"),
                 List.of("fracoes equivalentes", "minimo multiplo comum"),
                 List.of("fracoes com mesmo denominador"), "BNCC EF06MA07");
-        Lesson lesson = lessonRepository.save(new Lesson(null, UUID.randomUUID(), "Matematica",
+        Lesson lesson = lessonRepository.save(new Lesson(null, SEEDED_CLASSROOM_ID, "Matematica",
                 "Fracoes equivalentes", LocalDate.now(), syllabus));
         return lesson.id();
     }
