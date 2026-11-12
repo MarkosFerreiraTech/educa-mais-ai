@@ -70,8 +70,10 @@ jobs:
               backend/target/failsafe-reports/*.txt backend/target/surefire-reports/*.txt 2>/dev/null | cut -c1-420
             grep -hE "AssertionFailedError|AssertionError|expected:|but was|Status expected|Verification failed|Wanted but not invoked|JSON path" \
               backend/target/failsafe-reports/*.txt backend/target/surefire-reports/*.txt 2>/dev/null | cut -c1-400
-            grep -E "^\[ERROR\].*(error:|cannot find symbol|does not exist)" build.log | cut -c1-420
-          } | head -24 | while IFS= read -r line; do
+            grep -E "^\[ERROR\].*(error:|\.java:\[|cannot find symbol|does not exist|COMPILATION ERROR)" build.log | cut -c1-420
+            grep -E "BUILD FAILURE|Tests run:.*Failures|You have [0-9]+ Checkstyle|ERROR.*Failed to execute" build.log | cut -c1-420
+            tail -18 build.log | grep -vE "^\s*$" | cut -c1-420
+          } | head -26 | while IFS= read -r line; do
             echo "::error title=CI::${line}"
           done
 
