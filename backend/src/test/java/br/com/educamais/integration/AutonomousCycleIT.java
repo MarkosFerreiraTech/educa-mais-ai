@@ -224,7 +224,7 @@ class AutonomousCycleIT {
 
         mockMvc.perform(get("/api/v1/missions/" + missionId).header("Authorization", "Bearer " + tokenB))
                 .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.code").value("ACCESS_DENIED"));
+                .andExpect(jsonPath("$.code").value(org.hamcrest.Matchers.isOneOf("ACCESS_DENIED")));
     }
 
     @Test

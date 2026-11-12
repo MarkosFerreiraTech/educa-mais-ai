@@ -45,10 +45,12 @@ public class GamificationProfile {
     /** RF31/RN01: converte diamantes em moedas (1 diamante = 10 moedas). */
     public int convertDiamondsToCoins(int amount) {
         if (amount <= 0) {
-            throw new IllegalArgumentException("Quantidade de diamantes deve ser positiva");
+            throw new br.com.educamais.domain.exception.BusinessRuleException("INVALID_DIAMOND_AMOUNT",
+                    "Quantidade de diamantes deve ser positiva");
         }
         if (amount > diamonds) {
-            throw new IllegalStateException("Diamantes insuficientes");
+            throw new br.com.educamais.domain.exception.BusinessRuleException("INSUFFICIENT_DIAMONDS",
+                    "Diamantes insuficientes: faltam %d".formatted(amount - diamonds));
         }
         int gained = amount * COINS_PER_DIAMOND;
         this.diamonds -= amount;

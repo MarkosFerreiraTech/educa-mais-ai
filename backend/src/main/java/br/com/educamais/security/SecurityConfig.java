@@ -1,6 +1,7 @@
 package br.com.educamais.security;
 
 import br.com.educamais.config.SecurityProperties;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -61,9 +62,26 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/teacher/**").hasAnyRole("PROFESSOR", "ADMIN")
                         .requestMatchers("/api/v1/integrations/**").permitAll()
                         .anyRequest().authenticated())
+                .exceptionHandling(handling -> handling
+                        .authenticationEntryPoint((request, response, exception) ->
+                                writeProblem(response, 401, "UNAUTHENTICATED",
+                                        "Autenticacao obrigatoria para este recurso"))
+                        .accessDeniedHandler((request, response, exception) ->
+                                writeProblem(response, 403, "ACCESS_DENIED",
+                                        "Seu perfil nao tem permissao para este recurso")))
                 .addFilterBefore(new JwtAuthenticationFilter(jwtService), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(new RateLimitFilter(), JwtAuthenticationFilter.class);
         return http.build();
+    }
+
+    /** Corpo de erro JSON alinhado ao contrato ApiError (RF36). */
+    private static void writeProblem(HttpServletResponse response, int status, String code, String message)
+            throws java.io.IOException {
+        response.setStatus(status);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(
+                "{\"status\":%d,\"code\":\"%s\",\"message\":\"%s\"}".formatted(status, code, message));
     }
 
     @Bean

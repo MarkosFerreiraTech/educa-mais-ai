@@ -107,8 +107,7 @@ class AuthFlowIT {
     @DisplayName("endpoint protegido sem token e barrado pela autenticacao")
     void semToken() throws Exception {
         mockMvc.perform(get("/api/v1/missions"))
-                .andExpect(result -> assertThat(result.getResponse().getStatus())
-                        .isIn(401, 403));
+                .andExpect(status().isUnauthorized());
     }
 
     @Test

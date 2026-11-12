@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 /** Traduz excecoes de dominio em respostas HTTP consistentes (Problem-like). */
 @RestControllerAdvice
+@org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE)
 public class ApiExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(ApiExceptionHandler.class);
@@ -51,7 +52,8 @@ public class ApiExceptionHandler {
                  "SECURITY_REPLAY_DETECTED", "SECURITY_INVALID_API_KEY", "SECURITY_INVALID_TIMESTAMP",
                  "SECURITY_MISSING_TIMESTAMP" -> HttpStatus.UNAUTHORIZED;
             case "LOGIN_BLOCKED" -> HttpStatus.TOO_MANY_REQUESTS;
-            case "INSUFFICIENT_COINS" -> HttpStatus.UNPROCESSABLE_ENTITY;
+            case "INSUFFICIENT_COINS", "INSUFFICIENT_DIAMONDS", "INVALID_DIAMOND_AMOUNT",
+                 "ITEM_ALREADY_OWNED" -> HttpStatus.UNPROCESSABLE_ENTITY;
             case "ACCOUNT_NOT_ACTIVE" -> HttpStatus.FORBIDDEN;
             default -> HttpStatus.UNPROCESSABLE_ENTITY;
         };

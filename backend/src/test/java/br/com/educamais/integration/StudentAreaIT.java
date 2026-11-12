@@ -69,6 +69,7 @@ class StudentAreaIT {
         mockMvc.perform(patch("/api/v1/students/me/preferences").header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"whatsAppOptIn\":false,\"phone\":\"+5581966665555\"}"))
+                .andDo(org.springframework.test.web.servlet.result.MockMvcResultHandlers.print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.whatsAppOptIn").value(false));
     }

@@ -40,7 +40,9 @@ class GamificationProfileTest {
     @DisplayName("Nao converte mais diamantes do que possui")
     void diamantesInsuficientes() {
         GamificationProfile profile = GamificationProfile.newFor(studentId);
-        assertThatThrownBy(() -> profile.convertDiamondsToCoins(1)).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> profile.convertDiamondsToCoins(1))
+                .isInstanceOf(br.com.educamais.domain.exception.BusinessRuleException.class)
+                .hasMessageContaining("Diamantes insuficientes");
     }
 
     @Test
