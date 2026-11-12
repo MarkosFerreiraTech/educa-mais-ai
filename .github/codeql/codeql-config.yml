@@ -1,0 +1,26 @@
+# ============================================================
+# Educa Mais - configuracao do CodeQL
+# ------------------------------------------------------------
+# Estende security-extended e documenta, de forma auditavel, os
+# resultados que NAO sao vulnerabilidades neste contexto.
+#
+# Regra: cada exclusao precisa de justificativa tecnica escrita.
+# Exclusao sem justificativa e divida de seguranca.
+# ============================================================
+name: "Educa Mais CodeQL"
+
+queries:
+  - uses: security-extended
+
+query-filters:
+  # ---------------------------------------------------------------------
+  # java/spring-disabled-csrf-protection
+  # Falso positivo: API REST 100% stateless. A credencial viaja em
+  # Authorization: Bearer (header), nunca em cookie de sessao; o navegador
+  # nao anexa o header automaticamente, logo o CSRF classico nao ocorre.
+  # Decisao registrada em docs/adr/ADR-004-jwt-stateless-authelia.md e
+  # reforcada pelos headers (CSP, no-referrer, X-Frame-Options) e CORS por
+  # allowlist em security/SecurityConfig.java.
+  # ---------------------------------------------------------------------
+  - exclude:
+      id: java/spring-disabled-csrf-protection

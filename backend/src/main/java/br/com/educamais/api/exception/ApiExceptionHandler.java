@@ -72,7 +72,7 @@ public class ApiExceptionHandler {
                                 result.getMethodParameter().getParameterName(),
                                 error.getDefaultMessage())))
                 .toList();
-        log.warn("VALIDATION_ERROR path={} origem=method-validation violacoes={}", request.getRequestURI(),
+        log.warn("VALIDATION_ERROR path={} origem=method-validation violacoes={}", LogSanitizer.path(request.getRequestURI()),
                 violations);
         ApiError error = new ApiError(HttpStatus.BAD_REQUEST.value(), "VALIDATION_ERROR",
                 "Dados invalidos na requisicao", violations, java.time.Instant.now(), request.getRequestURI());
@@ -82,7 +82,7 @@ public class ApiExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleValidation(MethodArgumentNotValidException exception,
                                                      HttpServletRequest request) {
-        log.warn("VALIDATION_ERROR path={} erros={} detalhes={}", request.getRequestURI(),
+        log.warn("VALIDATION_ERROR path={} erros={} detalhes={}", LogSanitizer.path(request.getRequestURI()),
                 exception.getBindingResult().getErrorCount(),
                 exception.getBindingResult().getFieldErrors().stream()
                         .map(error -> error.getField() + ":" + error.getDefaultMessage()).toList());
@@ -124,7 +124,7 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleUnexpected(Exception exception, HttpServletRequest request) {
-        log.error("UNEXPECTED_ERROR path={} type={}", request.getRequestURI(),
+        log.error("UNEXPECTED_ERROR path={} type={}", LogSanitizer.path(request.getRequestURI()),
                 exception.getClass().getSimpleName(), exception);
         ApiError error = ApiError.of(HttpStatus.INTERNAL_SERVER_ERROR.value(), "INTERNAL_ERROR",
                 "Erro inesperado. Tente novamente.", request.getRequestURI());

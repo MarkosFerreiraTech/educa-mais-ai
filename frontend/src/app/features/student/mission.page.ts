@@ -189,7 +189,7 @@ export class MissionPage {
   });
   readonly currentStepNumber = computed(() => this.currentStep()?.order ?? 0);
   readonly interestsLabel = computed(() =>
-    (this.auth.profile()?.interests ?? []).join(', ').replaceAll('futebol', 'futebol'),
+    (this.auth.profile()?.interests ?? []).join(', '),
   );
 
   constructor() {

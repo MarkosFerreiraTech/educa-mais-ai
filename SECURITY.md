@@ -36,3 +36,32 @@ Pedimos divulgação responsável (prazo de 90 dias antes de publicação).
 
 Nunca comite chaves. Em produção, use **AWS Secrets Manager** (+ KMS) e as variáveis descritas no
 [README](README.md#-variáveis-de-ambiente). Em desenvolvimento, `.env` (ignorado pelo Git) ou o perfil `demo`.
+
+## Análise estática (CodeQL) — decisões documentadas
+
+O pipeline roda CodeQL com `security-extended` para Java/Kotlin e TypeScript. Resultados que **não**
+são vulnerabilidades neste contexto são excluídos de forma justificada em
+[`.github/codeql/codeql-config.yml`](.github/codeql/codeql-config.yml), nunca silenciados:
+
+| Alerta | Situação | Justificativa |
+| --- | --- | --- |
+| `java/spring-disabled-csrf-protection` | excluído | API stateless com credencial em `Authorization: Bearer`; não há cookie de sessão para o navegador enviar sozinho (ADR-004) |
+| Log injection (`ApiExceptionHandler`, `JwtAuthenticationFilter`) | **corrigido** | o caminho da requisição passa por sanitização (`LogSanitizer` / `safePath`): remove caracteres de controle e trunca em 200 caracteres |
+| Senha vazia em arquivo de configuração | **corrigido** | perfis `dev`/`test` passaram a usar `${DB_PASSWORD:sa}` em vez de string vazia |
+| `replaceAll` que substitui um termo por ele mesmo | **corrigido** | `mission.page.ts` não faz mais a substituição inútil |
+
+## Modelo de ameaças (resumo)
+
+| Ativo | Ameaça | Controle |
+| --- | --- | --- |
+| Dados de menores (nome, e-mail, telefone, nascimento) | leitura direta do banco | AES-256-GCM por coluna + índice cego HMAC para busca |
+| Credenciais do aluno | vazamento em log/erro | senha só em hash Argon2id; `ApiError` nunca devolve stacktrace |
+| Webhook da escola | forjar falta / replay | API key + HMAC do payload e timestamp + janela de tolerância |
+| Sessão | roubo de token | access token curto, refresh rotativo, sem estado no servidor |
+| Pipeline | segredo versionado / dependência vulnerável | Gitleaks + Dependency-Check + Trivy + CodeQL em todo push e semanalmente |
+
+## Reportar uma vulnerabilidade
+
+Envie um e-mail para **security@educamais.example** (ou abra um *private security advisory* no
+GitHub) com: versão/commit afetado, passos de reprodução e impacto estimado. Respondemos em até
+**72 horas** e publicamos a correção com crédito ao pesquisador, se desejado.

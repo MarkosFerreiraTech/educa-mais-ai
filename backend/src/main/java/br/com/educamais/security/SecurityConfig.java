@@ -41,6 +41,10 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http, JwtService jwtService, SecurityProperties properties)
             throws Exception {
         http
+                // CSRF desabilitado por design: a API e stateless e a credencial viaja em
+                // Authorization: Bearer (nunca em cookie de sessao), entao o navegador nao
+                // anexa a credencial automaticamente e o ataque CSRF classico nao se aplica.
+                // Ver docs/adr/ADR-004-jwt-stateless-authelia.md e SECURITY.md.
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource(properties)))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

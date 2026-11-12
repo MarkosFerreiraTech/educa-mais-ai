@@ -31,6 +31,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         this.jwtService = jwtService;
     }
 
+    /** Caminho seguro para log: sem caracteres de controle (evita log injection, RNF20). */
+    private static String safePath(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        if (uri == null || uri.isBlank()) {
+            return "-";
+        }
+        String sanitized = uri.replaceAll("[\\p{Cntrl}]", "_").replaceAll("[<>\"'`\\\\]", "_");
+        return sanitized.length() <= 200 ? sanitized : sanitized.substring(0, 200) + "...";
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
@@ -52,11 +62,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authentication);
         } catch (ExpiredJwtException exception) {
-            log.info("SECURITY_TOKEN_EXPIRED path={}", request.getRequestURI());
+            log.info("SECURITY_TOKEN_EXPIRED path={}", safePath(request));
             writeError(response, "token_expired", "Token expirado");
             return;
         } catch (JwtException | IllegalArgumentException exception) {
-            log.warn("SECURITY_TOKEN_INVALID path={}", request.getRequestURI());
+            log.warn("SECURITY_TOKEN_INVALID path={}", safePath(request));
             writeError(response, "invalid_token", "Token invalido");
             return;
         }

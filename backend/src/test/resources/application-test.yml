@@ -3,7 +3,7 @@ spring:
     url: jdbc:h2:mem:educamais_test;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1
     driver-class-name: org.h2.Driver
     username: sa
-    password: ""
+    password: ${DB_PASSWORD:sa}
   jpa:
     hibernate:
       ddl-auto: validate
