@@ -1,15 +1,20 @@
 # Perfil de demonstracao: Postgres do Docker Compose + dados de exemplo + agente em modo demo.
+#
+# IMPORTANTE: um resource profile-specific (como este) NAO pode declarar
+# spring.profiles.include/active. Desde o Spring Boot 2.4 o boot falha no
+# ambiente com:
+#   InvalidConfigDataPropertyException: Property 'spring.profiles.include'
+#   imported from location 'class path resource [application-demo.yml]' is invalid
+# Por isso o demo e autocontido e NAO inclui o perfil dev (que usa H2 em
+# memoria). Para rodar localmente sem Docker, use SPRING_PROFILES_ACTIVE=dev.
 spring:
-  profiles:
-    include: dev
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/educamais}
     username: ${DB_USER:educamais}
     password: ${DB_PASSWORD:educamais}
-    # O perfil dev (incluido acima) fixa driver-class-name: org.h2.Driver.
-    # Sem sobrescrever aqui, o demo conecta no Postgres do Compose usando o
-    # driver do H2 e morre no boot com:
-    #   "Driver org.h2.Driver claims to not accept JDBC URL jdbc:postgresql://..."
+    # Driver fixado explicitamente (o Postgres esta no classpath); sem pin, a
+    # deteccao pelo URL tambem funciona, mas o pin e determinístico em qualquer
+    # combinacao de perfis.
     driver-class-name: org.postgresql.Driver
   flyway:
     enabled: true
