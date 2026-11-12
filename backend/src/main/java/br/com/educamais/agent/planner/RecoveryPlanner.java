@@ -52,8 +52,11 @@ public class RecoveryPlanner {
                 return new PlanningResult(outcome.plan(), outcome.discardedObjectives(),
                         System.currentTimeMillis() - startedAt, PlanSource.LLM);
             }
-            log.warn("AGENT_PLAN_INVALID_LLM_OUTPUT steps={} - aplicando fallback",
-                    llmPlan.get().steps().size());
+            log.warn("AGENT_PLAN_INVALID_LLM_OUTPUT steps={} discarded={} - aplicando fallback",
+                    llmPlan.get().steps().size(), outcome.discardedObjectives().size());
+            MissionPlan fallback = fallbackPlanner.plan(request);
+            return new PlanningResult(fallback, outcome.discardedObjectives(),
+                    System.currentTimeMillis() - startedAt, PlanSource.FALLBACK);
         } else {
             log.warn("AGENT_PLAN_LLM_UNAVAILABLE - aplicando fallback deterministico");
         }

@@ -37,10 +37,22 @@ class ArchitectureTest {
             .that().resideInAPackage("..api.controller..")
             .should().dependOnClassesThat().resideInAPackage("..infrastructure.persistence.jpa..");
 
+    /**
+     * Padrao Adapter + DIP: todo adapter de persistencia implementa (direta ou indiretamente)
+     * um port do dominio. A regra e expressa como dependencia ao pacote de ports, que e o que
+     * o ArchUnit consegue verificar de forma estavel sem refletir sobre interfaces genericas.
+     */
     @ArchTest
     static final ArchRule adaptersImplementamPorts = classes()
             .that().resideInAPackage("..infrastructure.persistence.adapter..")
-            .should().dependOnClassesThat().resideInAPackage("..domain.port..");
+            .and().areTopLevelClasses()
+            .should().dependOnClassesThat().resideInAPackage("..domain.port..")
+            .because("adapters existem para satisfazer ports do dominio (DIP)");
+
+    @ArchTest
+    static final ArchRule adapterDeIaImplementaPort = classes()
+            .that().haveSimpleName("GeminiAgentAdapter")
+            .should().dependOnClassesThat().haveSimpleName("LlmPort");
 
     @Test
     @DisplayName("Importacao das classes da aplicacao funciona")

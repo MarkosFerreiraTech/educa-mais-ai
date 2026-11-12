@@ -47,9 +47,19 @@ jobs:
         if: failure()
         run: |
           echo "### Diagnostico do build" >> "$GITHUB_STEP_SUMMARY"
-          grep -E "ERROR|error:|BUILD FAILURE|Tests run|FAILURE" build.log | head -120 >> "$GITHUB_STEP_SUMMARY"
-          grep -E "ERROR|error:" build.log | head -40 | while IFS= read -r line; do
-            echo "::error title=Maven::${line:0:900}"
+          grep -E "ERROR|error:|BUILD FAILURE|Tests run" build.log | head -80 >> "$GITHUB_STEP_SUMMARY"
+          echo "### Detalhe dos testes" >> "$GITHUB_STEP_SUMMARY"
+          for report in backend/target/surefire-reports/*.txt; do
+            [ -f "$report" ] || continue
+            head -40 "$report" >> "$GITHUB_STEP_SUMMARY"
+          done
+          # Annotations: erros de compilacao + falhas de teste (linhas mais informativas)
+          {
+            grep -E "^\[ERROR\].*(error:|cannot find symbol|does not exist)" build.log
+            grep -hE "AssertionFailedError|expected:|but was:|AssertionError|ArchUnit|Rule .* was violated" \
+              backend/target/surefire-reports/*.txt 2>/dev/null
+          } | head -30 | while IFS= read -r line; do
+            echo "::error title=Teste::${line:0:900}"
           done
 
       - name: Publicar relatorio de testes

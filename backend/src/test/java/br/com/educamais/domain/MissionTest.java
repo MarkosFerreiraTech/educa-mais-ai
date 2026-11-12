@@ -88,6 +88,7 @@ class MissionTest {
 
         mission.adaptCurrentStep();
         assertThat(mission.currentStep().orElseThrow().strategy()).isEqualTo(PedagogicalStrategyType.ANALOGY);
+        assertThat(mission.currentStep().orElseThrow().status()).isEqualTo(StepStatus.IN_PROGRESS);
         mission.adaptCurrentStep();
         assertThat(mission.currentStep().orElseThrow().strategy()).isEqualTo(PedagogicalStrategyType.VISUAL);
         mission.adaptCurrentStep();
@@ -116,6 +117,7 @@ class MissionTest {
         @DisplayName("Maximo de 3 tentativas por passo (RN05)")
         void limiteDeTentativas() {
             Mission mission = newMission();
+            mission.markNotified();
             mission.start();
             mission.adaptCurrentStep();
             mission.adaptCurrentStep();
@@ -128,6 +130,7 @@ class MissionTest {
         @DisplayName("Nova explicacao substitui a anterior mantendo o objetivo")
         void atualizaExplicacao() {
             Mission mission = newMission();
+            mission.markNotified();
             mission.start();
             String objective = mission.currentStep().orElseThrow().objective();
             mission.applyExplanation("Nova explicacao com futebol", "Novo exemplo");

@@ -127,7 +127,9 @@ public class Mission {
 
     public Optional<MissionStep> currentStep() {
         return steps.stream()
-                .filter(step -> step.status() == StepStatus.PENDING || step.status() == StepStatus.IN_PROGRESS)
+                .filter(step -> step.status() == StepStatus.PENDING
+                        || step.status() == StepStatus.IN_PROGRESS
+                        || step.status() == StepStatus.NEEDS_REINFORCEMENT)
                 .findFirst();
     }
 

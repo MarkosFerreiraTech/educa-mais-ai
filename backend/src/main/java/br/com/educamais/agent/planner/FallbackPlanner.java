@@ -33,14 +33,14 @@ public class FallbackPlanner {
             steps.add(new MissionPlan.PlannedStep(
                     objective,
                     "Objetivo %d: %s. Vamos entender a ideia central de %s comparando partes de um todo "
-                            .concat("com situacoes de %s.").formatted(index, objective, topic, hint),
+                            .concat("com situacoes do seu interesse: %s.").formatted(index, objective, topic, hint),
                     "Exemplo com %s: divida uma situacao em partes iguais e conte quantas voce usou.".formatted(hint)));
             index++;
         }
         while (steps.size() < MissionPlan.MIN_STEPS) {
             steps.add(new MissionPlan.PlannedStep(
                     "Praticar " + topic,
-                    "Agora vamos praticar %s com um exemplo passo a passo usando %s.".formatted(topic, hint),
+                    "Agora vamos praticar %s com um exemplo passo a passo inspirado em %s.".formatted(topic, hint),
                     "Exemplo guiado: identifique as partes, conte as partes usadas e escreva o resultado."));
         }
         return new MissionPlan(steps, PlanSource.FALLBACK);

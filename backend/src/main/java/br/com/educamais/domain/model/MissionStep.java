@@ -41,22 +41,32 @@ public class MissionStep {
         }
     }
 
-    /** RF19: acerto conclui o passo. */
+    /** RF19: acerto conclui o passo, com ou sem apoio pedagogico (RN05). */
     public void complete() {
         this.status = attempts > 0 ? StepStatus.COMPLETED_WITH_SUPPORT : StepStatus.COMPLETED;
     }
 
-    /** RF18/RN05: registra o erro e escala a estrategia pedagogica. */
+    /**
+     * RF18/RN05: registra o erro e escala a estrategia pedagogica.
+     *
+     * <p>Enquanto houver tentativas, o passo continua elegivel para nova resposta
+     * (status IN_PROGRESS). Ao esgotar as 3 tentativas o passo entra em reforco
+     * (NEEDS_REINFORCEMENT) e o aluno conta com apoio do professor.</p>
+     */
     public PedagogicalStrategyType registerFailure() {
         this.attempts++;
-        this.status = StepStatus.IN_PROGRESS;
+        this.strategy = strategy.escalate();
         if (attempts >= MAX_ATTEMPTS) {
             this.strategy = PedagogicalStrategyType.STEP_BY_STEP;
-            this.status = StepStatus.NEEDS_REINFORCEMENT;
-        } else {
-            this.strategy = strategy.escalate();
         }
+        this.status = attempts >= MAX_ATTEMPTS ? StepStatus.NEEDS_REINFORCEMENT
+                : StepStatus.IN_PROGRESS;
         return this.strategy;
+    }
+
+    /** RF18: mapeia a estrategia corrente no nivel de dificuldade da proxima questao. */
+    public int difficulty() {
+        return Math.min(strategy.ordinal() + 1, 4);
     }
 
     public boolean canRetry() {
