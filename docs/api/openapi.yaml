@@ -1,0 +1,574 @@
+openapi: 3.1.0
+info:
+  title: Educa Mais API
+  version: 1.0.0
+  description: |
+    API do agente autonomo de recuperacao de aprendizagem (ODS 4).
+
+    **Autenticacao**: `Bearer <accessToken>` (JWT stateless) em todas as rotas
+    `/api/v1/**`, exceto `/auth/**` e o webhook escolar, que usa
+    `X-Api-Key` + `X-Signature` (HMAC-SHA256) + `X-Timestamp`.
+
+    **Erros**: todo erro segue o contrato `ApiError`
+    (`status`, `code`, `message`, `violations[]`, `timestamp`, `path`).
+  contact:
+    name: Equipe Educa Mais
+  license:
+    name: MIT
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Ambiente local (docker compose)
+  - url: https://api.educa-mais.com/api/v1
+    description: Producao (AWS App Runner)
+tags:
+  - name: Auth
+    description: Identidade e onboarding do aluno
+  - name: Students
+    description: Perfil, interesses e gamificacao
+  - name: Missions
+    description: Jornada de recuperacao adaptativa
+  - name: Notifications
+    description: Mensagens in-app e WhatsApp
+  - name: Shop
+    description: Loja do avatar (moedas e diamantes)
+  - name: Teacher
+    description: Dashboard e relatorios pedagogicos
+  - name: School Integration
+    description: Webhook do sistema escolar (HMAC)
+security:
+  - bearerAuth: []
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Cadastra o aluno e devolve tokens
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/RegisterRequest'}
+            examples:
+              alunoComInteresses:
+                value:
+                  name: Ana Souza
+                  email: ana.souza@escola.br
+                  phone: "+5581999998888"
+                  birthDate: "2012-04-10"
+                  password: "Senha@2026"
+                  interests: [futebol, games]
+                  whatsAppOptIn: true
+      responses:
+        '201':
+          description: Aluno criado
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/LoginResponse'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Autentica e emite access + refresh token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: {type: string, format: email}
+                password: {type: string, format: password}
+      responses:
+        '200':
+          description: Tokens emitidos
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/LoginResponse'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '429': {$ref: '#/components/responses/TooManyRequests'}
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Renova o access token a partir do refresh token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken: {type: string}
+      responses:
+        '200':
+          description: Novo par de tokens
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/LoginResponse'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+  /auth/interests:
+    patch:
+      tags: [Auth]
+      summary: Atualiza interesses do aluno (onboarding)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items: {type: string, enum: [futebol, games, musica, ciencia, moda, natureza]}
+      responses:
+        '204': {description: Interesses atualizados}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+  /students/me:
+    get:
+      tags: [Students]
+      summary: Perfil do aluno autenticado
+      responses:
+        '200':
+          description: Perfil
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Profile'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+  /students/me/gamification:
+    get:
+      tags: [Students]
+      summary: XP, nivel, diamantes, moedas e ofensiva
+      responses:
+        '200':
+          description: Perfil de gamificacao
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Gamification'}
+  /students/me/preferences:
+    patch:
+      tags: [Students]
+      summary: Preferencias de contato (opt-in WhatsApp/telefone)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                whatsAppOptIn: {type: boolean}
+                phone: {type: string}
+      responses:
+        '200':
+          description: Perfil atualizado
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Profile'}
+  /missions:
+    get:
+      tags: [Missions]
+      summary: Lista as missoes do aluno
+      responses:
+        '200':
+          description: Missoes
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {$ref: '#/components/schemas/Mission'}
+  /missions/{missionId}:
+    get:
+      tags: [Missions]
+      summary: Detalhe da jornada (missao + exercicio atual)
+      parameters:
+        - $ref: '#/components/parameters/MissionId'
+      responses:
+        '200':
+          description: Jornada
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Mission'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /missions/{missionId}/start:
+    post:
+      tags: [Missions]
+      summary: Inicia a missao (NOTIFIED -> IN_PROGRESS)
+      parameters:
+        - $ref: '#/components/parameters/MissionId'
+      responses:
+        '200':
+          description: Missao iniciada
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Mission'}
+        '422': {$ref: '#/components/responses/UnprocessableEntity'}
+  /missions/{missionId}/answers:
+    post:
+      tags: [Missions]
+      summary: Responde o exercicio diagnostico do passo atual
+      description: |
+        Acerto conclui o passo. Erro escala a estrategia pedagogica
+        (`EXPLICIT -> ANALOGY -> VISUAL -> STEP_BY_STEP`); na 3a tentativa o passo
+        entra em `NEEDS_REINFORCEMENT` e o professor e acionado no relatorio.
+      parameters:
+        - $ref: '#/components/parameters/MissionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [questionId, answer]
+              properties:
+                questionId: {type: string, format: uuid}
+                answer: {type: string}
+      responses:
+        '200':
+          description: Avaliacao da resposta
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AnswerResponse'}
+  /notifications:
+    get:
+      tags: [Notifications]
+      summary: Lista notificacoes do aluno (in-app e WhatsApp)
+      responses:
+        '200':
+          description: Notificacoes
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {$ref: '#/components/schemas/Notification'}
+  /shop/items:
+    get:
+      tags: [Shop]
+      summary: Catalogo da loja do avatar
+      responses:
+        '200':
+          description: Itens (com indicacao de posse)
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {$ref: '#/components/schemas/ShopItem'}
+  /shop/purchase:
+    post:
+      tags: [Shop]
+      summary: Compra um item com moedas
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [itemCode]
+              properties:
+                itemCode: {type: string}
+      responses:
+        '200':
+          description: Compra efetuada
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Gamification'}
+        '422': {$ref: '#/components/responses/UnprocessableEntity'}
+  /shop/diamonds/convert:
+    post:
+      tags: [Shop]
+      summary: Converte diamantes em moedas (1 diamante = 10 moedas)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [amount]
+              properties:
+                amount: {type: integer, minimum: 1}
+      responses:
+        '200':
+          description: Saldo atualizado
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Gamification'}
+        '422': {$ref: '#/components/responses/UnprocessableEntity'}
+  /teacher/dashboard:
+    get:
+      tags: [Teacher]
+      summary: Indicadores da turma (alunos em risco)
+      parameters:
+        - name: classroomId
+          in: query
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200':
+          description: Indicadores
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Dashboard'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /teacher/reports/{missionId}:
+    get:
+      tags: [Teacher]
+      summary: Relatorio automatico de uma missao
+      parameters:
+        - $ref: '#/components/parameters/MissionId'
+      responses:
+        '200':
+          description: Relatorio pedagogico
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TeacherReport'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /integrations/school/attendance:
+    post:
+      tags: [School Integration]
+      summary: Webhook de falta do sistema escolar (HMAC)
+      description: |
+        Rota publica protegida por `X-Api-Key`, `X-Signature` (HMAC-SHA256 do
+        payload canonico `eventId|studentId|lessonId` precedido do timestamp) e
+        `X-Timestamp` (tolerancia de 5 minutos contra replay). Idempotente por `eventId`.
+      security: []
+      parameters:
+        - {name: X-Api-Key, in: header, required: true, schema: {type: string}}
+        - {name: X-Signature, in: header, required: true, schema: {type: string}}
+        - {name: X-Timestamp, in: header, required: true, schema: {type: string}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [eventId, studentId, lessonId]
+              properties:
+                eventId: {type: string}
+                studentId: {type: string, format: uuid}
+                lessonId: {type: string, format: uuid}
+                occurredAt: {type: string, format: date-time}
+                reason: {type: string}
+      responses:
+        '202':
+          description: Falta aceita e agente acionado
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/WebhookResponse'}
+        '200':
+          description: Evento duplicado (idempotencia)
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/WebhookResponse'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    MissionId:
+      name: missionId
+      in: path
+      required: true
+      schema: {type: string, format: uuid}
+  responses:
+    BadRequest:
+      description: Dados invalidos (Bean Validation)
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ApiError'}
+    Unauthorized:
+      description: Token ausente, invalido ou expirado
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ApiError'}
+    Forbidden:
+      description: Sem permissao para o recurso
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ApiError'}
+    NotFound:
+      description: Recurso inexistente
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ApiError'}
+    Conflict:
+      description: Conflito (email duplicado, transicao invalida)
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ApiError'}
+    UnprocessableEntity:
+      description: Regra de negocio violada
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ApiError'}
+    TooManyRequests:
+      description: Rate limit ou bloqueio por tentativas
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ApiError'}
+  schemas:
+    ApiError:
+      type: object
+      properties:
+        status: {type: integer}
+        code: {type: string, example: VALIDATION_ERROR}
+        message: {type: string}
+        violations:
+          type: array
+          items:
+            type: object
+            properties:
+              field: {type: string}
+              message: {type: string}
+        timestamp: {type: string, format: date-time}
+        path: {type: string}
+    RegisterRequest:
+      type: object
+      required: [name, email, password]
+      properties:
+        name: {type: string, maxLength: 120}
+        email: {type: string, format: email}
+        phone: {type: string, maxLength: 20}
+        birthDate: {type: string, format: date}
+        password: {type: string, minLength: 8, maxLength: 72, description: Exige numero e simbolo}
+        interests:
+          type: array
+          items: {type: string, enum: [futebol, games, musica, ciencia, moda, natureza]}
+        schoolId: {type: string, format: uuid}
+        classroomId: {type: string, format: uuid}
+        whatsAppOptIn: {type: boolean, default: false}
+        guardianConsent: {type: string, enum: [ACEITE, NAO_ACEITE]}
+    LoginResponse:
+      type: object
+      properties:
+        accessToken: {type: string}
+        refreshToken: {type: string}
+        tokenType: {type: string, example: Bearer}
+        expiresIn: {type: integer, example: 3600}
+        role: {type: string, enum: [ALUNO, PROFESSOR, ADMIN]}
+    Profile:
+      type: object
+      properties:
+        id: {type: string, format: uuid}
+        name: {type: string}
+        email: {type: string, format: email}
+        phone: {type: string}
+        status: {type: string, enum: [PENDING_ONBOARDING, ACTIVE, SUSPENDED, ANONYMIZED]}
+        interests:
+          type: array
+          items: {type: string}
+        whatsAppOptIn: {type: boolean}
+    Gamification:
+      type: object
+      properties:
+        studentId: {type: string, format: uuid}
+        totalXp: {type: integer, example: 150}
+        level: {type: integer, example: 2}
+        xpToNextLevel: {type: integer, example: 50}
+        diamonds: {type: integer, example: 3}
+        coins: {type: integer, example: 20}
+        currentStreak: {type: integer, example: 4}
+        longestStreak: {type: integer, example: 7}
+    Mission:
+      type: object
+      properties:
+        id: {type: string, format: uuid}
+        status:
+          type: string
+          enum: [PLANNED, NOTIFIED, IN_PROGRESS, COMPLETED, COMPLETED_WITH_SUPPORT, ABANDONED, CANCELLED, BLOCKED_NO_SYLLABUS]
+        planSource: {type: string, enum: [LLM, FALLBACK]}
+        progress: {type: integer, minimum: 0, maximum: 100}
+        attempts: {type: integer}
+        finished: {type: boolean}
+        createdAt: {type: string, format: date-time}
+        completedAt: {type: string, format: date-time, nullable: true}
+        steps:
+          type: array
+          items: {$ref: '#/components/schemas/MissionStep'}
+        question: {$ref: '#/components/schemas/Question'}
+    MissionStep:
+      type: object
+      properties:
+        id: {type: string, format: uuid}
+        order: {type: integer}
+        objective: {type: string}
+        explanation: {type: string}
+        example: {type: string}
+        strategy: {type: string, enum: [EXPLICIT, ANALOGY, VISUAL, STEP_BY_STEP]}
+        status: {type: string, enum: [PENDING, IN_PROGRESS, COMPLETED, COMPLETED_WITH_SUPPORT, NEEDS_REINFORCEMENT]}
+        attempts: {type: integer}
+        maxAttempts: {type: integer, example: 3}
+    Question:
+      type: object
+      nullable: true
+      properties:
+        id: {type: string, format: uuid}
+        prompt: {type: string}
+        difficulty: {type: integer, minimum: 1, maximum: 4}
+        options:
+          type: array
+          items: {type: string}
+    AnswerResponse:
+      type: object
+      properties:
+        classification: {type: string, enum: [CORRECT, PARTIAL, INCORRECT]}
+        feedback: {type: string}
+        mission: {$ref: '#/components/schemas/Mission'}
+    Notification:
+      type: object
+      properties:
+        id: {type: string, format: uuid}
+        channel: {type: string, enum: [IN_APP, WHATSAPP]}
+        status: {type: string, enum: [PENDING, SENT, DELIVERED, SKIPPED, FAILED]}
+        title: {type: string}
+        body: {type: string}
+        createdAt: {type: string, format: date-time}
+    ShopItem:
+      type: object
+      properties:
+        code: {type: string, example: camisa-time}
+        name: {type: string}
+        category: {type: string, enum: [OUTFIT, ACCESSORY]}
+        priceCoins: {type: integer, example: 20}
+        assetUrl: {type: string}
+        owned: {type: boolean}
+    Dashboard:
+      type: object
+      properties:
+        classroomId: {type: string, format: uuid}
+        totalStudents: {type: integer}
+        pendingMissions: {type: integer}
+        completionRate: {type: number, example: 62.5}
+        students:
+          type: array
+          items:
+            type: object
+            properties:
+              studentId: {type: string, format: uuid}
+              firstName: {type: string}
+              pendingMissions: {type: integer}
+              completedMissions: {type: integer}
+              stepsNeedingSupport: {type: integer}
+              reportsAvailable: {type: integer}
+    TeacherReport:
+      type: object
+      properties:
+        missionId: {type: string, format: uuid}
+        studentFirstName: {type: string}
+        lesson: {type: string}
+        summary: {type: string}
+        successRate: {type: number, example: 66.7}
+        identifiedGaps:
+          type: array
+          items: {type: string}
+        recommendation: {type: string}
+        withSupport: {type: boolean}
+        generatedAt: {type: string, format: date-time}
+    WebhookResponse:
+      type: object
+      properties:
+        eventId: {type: string}
+        status: {type: string, enum: [ACCEPTED, IGNORED_DUPLICATE]}
+        attendanceId: {type: string, format: uuid, nullable: true}
