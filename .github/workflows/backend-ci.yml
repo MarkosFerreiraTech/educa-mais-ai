@@ -72,8 +72,10 @@ jobs:
               backend/target/failsafe-reports/*.txt backend/target/surefire-reports/*.txt 2>/dev/null | cut -c1-400
             grep -E "^\[ERROR\].*(error:|\.java:\[|cannot find symbol|does not exist|COMPILATION ERROR)" build.log | cut -c1-420
             grep -E "BUILD FAILURE|Tests run:.*Failures|You have [0-9]+ Checkstyle|ERROR.*Failed to execute" build.log | cut -c1-420
-            grep -h -A6 "UNEXPECTED_ERROR" build.log backend/target/*-reports/*.txt 2>/dev/null \
-              | grep -E "UNEXPECTED_ERROR|Exception:|at br\\.com\\.educamais" | cut -c1-420
+            # Causa raiz dos erros 500: log estruturado dos testes (logback-test.xml)
+            grep -hE "UNEXPECTED_ERROR|SECURITY_|ERROR" backend/target/test-server.log 2>/dev/null | tail -6 | cut -c1-420
+            grep -h -A4 "UNEXPECTED_ERROR" backend/target/test-server.log 2>/dev/null \
+              | grep -E "Exception|at br\.com\.educamais|Caused by" | head -6 | cut -c1-420
             # Testes falhos por nome (classe.metodo) - sempre presente nos XML
             for xml in backend/target/failsafe-reports/*.xml backend/target/surefire-reports/*.xml; do
               [ -f "$xml" ] || continue
@@ -117,6 +119,7 @@ jobs:
           path: |
             backend/target/surefire-reports/
             backend/target/failsafe-reports/
+            backend/target/test-server.log
           retention-days: 7
           if-no-files-found: ignore
 
