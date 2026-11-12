@@ -37,19 +37,23 @@ fi
 
 say "Criando branches de feature (uma por issue, padrao feature/#<issue>-<slug>)"
 FEATURES=(
-  "feature/#5-setup-autenticacao"
-  "feature/#6-perfil-interesses"
-  "feature/#7-webhook-escolar"
-  "feature/#8-gemini-planner"
-  "feature/#9-agente-adaptativo"
-  "feature/#10-notificacoes-whatsapp"
-  "feature/#11-gamificacao-loja"
-  "feature/#12-relatorio-professor"
-  "feature/#13-frontend-shell-clarity"
-  "feature/#14-frontend-jornada-aluno"
-  "feature/#15-dashboard-professor"
-  "feature/#16-infra-docker-aws"
-  "feature/#17-observabilidade-devsecops"
+  "feature/#1-dominio-seguranca-jwt"
+  "feature/#2-webhook-escolar-hmac"
+  "feature/#3-agente-gemini-planejamento"
+  "feature/#4-exercicios-adaptativos"
+  "feature/#5-notificacoes-in-app-whatsapp"
+  "feature/#6-gamificacao-loja"
+  "feature/#7-relatorio-professor-dashboard"
+  "feature/#8-privacidade-lgpd"
+  "feature/#9-devsecops-scanners"
+  "feature/#10-infra-docker-authelia-observabilidade"
+  "feature/#11-frontend-shell-clarity"
+  "feature/#12-frontend-jornada-missao"
+  "feature/#13-frontend-dashboard-professor"
+  "feature/#14-ci-gitflow-semver"
+  "feature/#15-documentacao-charter-requisitos"
+  "feature/#16-archunit"
+  "feature/#17-testes-integracao-ciclo"
 )
 for feature in "${FEATURES[@]}"; do
   if git rev-parse --verify "$feature" >/dev/null 2>&1; then
@@ -78,6 +82,12 @@ tag "v1.0.0" "Educa Mais v1.0.0 - MVP hackathon AKCIT Camp: ciclo autonomo compl
 
 say "Enviando branches e tags para $REMOTE"
 git push "$REMOTE" "$MAIN" develop --tags
+say "Criando pull request develop -> main (se a CLI gh estiver disponivel)"
+if command -v gh >/dev/null 2>&1 && ! gh pr list --head develop --state open | grep -q develop; then
+  gh pr create --base "$MAIN" --head develop \
+    --title "release: Educa Mais v1.0.0" \
+    --body "Release v1.0.0 — ciclo autonomo completo (ver CHANGELOG/historico de tags)." || true
+fi
 
 say "Pronto. Estrutura:"
 git branch -vv | sed 's/^/  /'
