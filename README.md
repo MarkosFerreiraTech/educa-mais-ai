@@ -194,7 +194,9 @@ educa-mais-ai/
 │   │   ├── infrastructure/     # JPA, adapters Gemini/WhatsApp, messaging
 │   │   ├── security/           # JWT, HMAC, rate limit, SecurityConfig
 │   │   └── config/             # properties, beans, async
-│   ├── src/main/resources/db/migration/   # Flyway (PostgreSQL + H2)
+│   ├── src/main/resources/db/
+│   │   ├── migration/          # Flyway - PostgreSQL (perfil demo/prod)
+│   │   └── migration-h2/       # Flyway - H2 (perfis dev/test)
 │   └── src/test/java/          # unitários, ArchUnit e ITs de fluxo
 ├── frontend/                   # SPA Angular 22 + Clarity
 ├── docs/                       # charter, requisitos, casos de uso, user stories, arquitetura
