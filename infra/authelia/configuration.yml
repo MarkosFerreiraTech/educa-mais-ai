@@ -1,11 +1,14 @@
 # =============================================================================
 # Authelia - SSO/OIDC para professores e administradores do Educa Mais (RF35).
 #
-# Suba com: docker compose --profile sso up -d
+# Suba com: docker compose --profile sso up -d      (portal em http://localhost:9091)
+# Valide com: docker compose run --rm authelia authelia config validate --config /config/configuration.yml
+#
 # Os segredos vem de variaveis de ambiente (AUTHELIA_*), nunca do arquivo.
+# Este arquivo usa os campos validos do Authelia 4.38 (o schema mudou entre 4.x:
+# `default_redirection_url` no topo foi removido, agora e por cookie de sessao).
 # =============================================================================
 theme: light
-default_redirection_url: http://localhost:4200
 
 server:
   address: 'tcp://0.0.0.0:9091'
@@ -25,7 +28,9 @@ totp:
 
 authentication_backend:
   file:
-    path: /config/users_database.yml
+    # O arquivo versionado e o .example (usuarios de DEMONSTRACAO).
+    # Em producao, copie para users_database.yml (ignorado pelo Git) e ajuste o path.
+    path: /config/users_database.example.yml
     password:
       algorithm: argon2id
       iterations: 3
@@ -76,7 +81,12 @@ identity_providers:
   oidc:
     hmac_secret: '{{ env "AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET" }}'
     jwks:
-      - key: '{{ secret "/config/secrets/jwks.key" }}'
+      # Chave RSA de DEMONSTRACAO versionada em infra/authelia/secrets/jwks.key.
+      # Em producao, gere a sua (ver infra/authelia/secrets/README.md).
+      - key_id: educa-mais
+        algorithm: RS256
+        use: sig
+        key: '{{ secret "/config/secrets/jwks.key" }}'
     lifespans:
       access_token: 1h
       id_token: 1h
@@ -90,10 +100,12 @@ identity_providers:
       - email
       - groups
     clients:
-      # Client confidencial usado pela API Spring Boot (fluxo authorization_code + PKCE).
+      # Client confidencial usado pela API Spring Boot.
+      # Texto puro (para login de demo): dev-authelia-client-secret-2026
+      # Em producao: authelia crypto hash generate pbkdf2 --variant sha512 --password '...'
       - client_id: educa-mais
         client_name: Educa Mais API
-        client_secret: '$pbkdf2-sha512$310000$c8b1b9ff2c7f4a5b$aBcDeFgHiJkLmNoPqRsTuVwXyZ0123456789abcdef'
+        client_secret: '$2b$10$VItyu9sh99J5Vluqnwaw8u9SS2uu4JUDLgCSBB4Y8umKMfjVmpt9y'
         public: false
         authorization_policy: one_factor
         claims_policy: educa-mais
@@ -101,5 +113,12 @@ identity_providers:
           - 'http://localhost:8080/login/oauth2/code/authelia'
           - 'http://localhost:4200/auth/callback'
         scopes: ['openid', 'profile', 'email', 'groups']
+        grant_types: ['authorization_code', 'refresh_token']
+        response_types: ['code']
+        response_modes: ['query', 'form_post']
+        token_endpoint_auth_method: 'client_secret_post'
         userinfo_signed_response_alg: none
         consent_mode: implicit
+        # OIDC exige PKCE coerente: a API Spring envia code_challenge.
+        require_pkce: true
+        pre_configured_consent_duration: '3 months'

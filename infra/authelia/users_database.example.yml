@@ -1,0 +1,31 @@
+# ============================================================================
+# Usuarios de DEMONSTRACAO do Authelia (perfil `sso`).
+# ----------------------------------------------------------------------------
+# Senha de ambos: Educa@2026  (hash argon2id gerado com os parametros abaixo,
+# identicos aos de infra/authelia/configuration.yml).
+#
+# ATENCAO: este arquivo e versionado de proposito para o hackathon funcionar
+# em um clone limpo. Em producao, NAO use estes usuarios: gere o seu com
+#
+#   docker run --rm authelia/authelia:4.38 \
+#     authelia crypto hash generate argon2 --password 'SuaSenhaForte'
+#
+# e mantenha o arquivo fora do Git (o .gitignore bloqueia
+# infra/authelia/users_database.yml, que e o caminho de producao).
+#
+# Parametros do hash: argon2id, t=3, m=65536, p=4, hash_len=32, salt_len=16
+# ============================================================================
+users:
+  professor.demo:
+    displayname: 'Professor Demo'
+    password: '$argon2id$v=19$m=65536,t=3,p=4$JfiagmhsAtyxKeTFbOc2pw$1RnUylfyVLf1EzL7iSBVNIDgN51JiPJzghmqP7H71lY'
+    email: professor.demo@escola.br
+    groups:
+      - professores
+
+  gestor.demo:
+    displayname: 'Gestora Demo'
+    password: '$argon2id$v=19$m=65536,t=3,p=4$5ui9bw2o2YfxqwQmZSGNEQ$aDBrJsZrIidZkNYy61qezylJFX62HX7VNoG+B1B41oA'
+    email: gestor.demo@escola.br
+    groups:
+      - administradores

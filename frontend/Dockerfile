@@ -8,12 +8,25 @@ RUN npm run build
 
 # ---------- runtime ----------
 FROM nginx:1.27-alpine AS runtime
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# curl para o healthcheck (a imagem nginx:alpine nao traz curl nem wget)
+RUN apk add --no-cache curl \
+    && addgroup -S web && adduser -S web -G web
+
+# Configuracao completa (contexto `main`): PID e temporarios em /tmp, porta 8080.
+# Copiar para /etc/nginx/nginx.conf substitui a config padrao que exige root.
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# O builder @angular/build:application gera dist/<projeto>/browser
+# (nao ha outputPath no angular.json, entao o padrao vale).
 COPY --from=build /app/dist/educa-mais-web/browser /usr/share/nginx/html
-RUN addgroup -S web && adduser -S web -G web \
-    && chown -R web:web /usr/share/nginx/html /var/cache/nginx /var/run
+
+RUN chown -R web:web /usr/share/nginx/html /var/cache/nginx
+
 USER web
-EXPOSE 80
-HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-  CMD wget -qO- http://localhost/ >/dev/null || exit 1
+EXPOSE 8080
+
+HEALTHCHECK --interval=15s --timeout=5s --start-period=10s --retries=5 \
+  CMD curl -fsS http://localhost:8080/healthz || exit 1
+
 CMD ["nginx", "-g", "daemon off;"]

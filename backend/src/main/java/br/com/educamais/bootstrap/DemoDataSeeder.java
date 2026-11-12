@@ -7,6 +7,7 @@ import br.com.educamais.domain.model.ShopItem;
 import br.com.educamais.domain.model.Student;
 import br.com.educamais.domain.model.Syllabus;
 import br.com.educamais.domain.port.LessonRepository;
+import br.com.educamais.domain.port.PasswordHasherPort;
 import br.com.educamais.domain.port.ShopRepository;
 import br.com.educamais.domain.port.StudentRepository;
 import java.time.LocalDate;
@@ -35,15 +36,20 @@ public class DemoDataSeeder implements ApplicationRunner {
     public static final UUID DEMO_LESSON_ID = UUID.fromString("33333333-3333-3333-3333-333333333333");
     public static final UUID DEMO_STUDENT_ID = UUID.fromString("44444444-4444-4444-4444-444444444444");
 
+    /** Senha do aluno de demonstracao (documentada no README e usada pelos scripts). */
+    public static final String DEMO_PASSWORD = "Demo@2026";
+
     private final StudentRepository studentRepository;
     private final LessonRepository lessonRepository;
     private final ShopRepository shopRepository;
+    private final PasswordHasherPort passwordHasher;
 
     public DemoDataSeeder(StudentRepository studentRepository, LessonRepository lessonRepository,
-                          ShopRepository shopRepository) {
+                          ShopRepository shopRepository, PasswordHasherPort passwordHasher) {
         this.studentRepository = studentRepository;
         this.lessonRepository = lessonRepository;
         this.shopRepository = shopRepository;
+        this.passwordHasher = passwordHasher;
     }
 
     @Override
@@ -60,11 +66,12 @@ public class DemoDataSeeder implements ApplicationRunner {
             return;
         }
         Student student = Student.register("Ana Souza", "ana.souza@escola.br", "+5581999998888",
-                LocalDate.of(2012, 4, 10), "{noop}demo", DEMO_SCHOOL_ID, DEMO_CLASSROOM_ID, true);
+                LocalDate.of(2012, 4, 10), passwordHasher.hash(DEMO_PASSWORD),
+                DEMO_SCHOOL_ID, DEMO_CLASSROOM_ID, true);
         student.defineInterests(List.of(Interest.of(InterestCode.FOOTBALL, 5),
                 Interest.of(InterestCode.GAMES, 3)));
         studentRepository.save(student);
-        log.info("DEMO_STUDENT_CREATED email=ana.souza@escola.br password=Demo@2026");
+        log.info("DEMO_STUDENT_CREATED email=ana.souza@escola.br credencial documentada no README");
     }
 
     private void seedLesson() {
