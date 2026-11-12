@@ -43,60 +43,41 @@ jobs:
           set -o pipefail
           mvn -B -ntp -Dstyle.color=never verify 2>&1 | tee ../build.log
 
-      - name: Publicar diagnosticos no resumo (falha)
+      - name: Publicar diagnosticos (resumo + annotations)
         if: failure()
         run: |
           {
-            echo "### Resumo do build (ultimas 120 linhas)"
-            tail -120 build.log
+            echo "### Resumo do build (ultimas 60 linhas)"
+            tail -60 build.log
             echo ""
-            echo "### Diagnostico do build"
-            grep -E "ERROR|error:|BUILD FAILURE|Tests run|WARN.*coverage" build.log | head -60
-            echo ""
-            echo "### Relatorios surefire/failsafe"
+            echo "### Relatorios de teste"
             for report in backend/target/surefire-reports/*.txt backend/target/failsafe-reports/*.txt; do
               [ -f "$report" ] || continue
               echo "--- $(basename "$report")"
-              head -60 "$report"
+              head -40 "$report"
             done
             echo ""
-            echo "### Tail do build"
-            tail -40 build.log
+            echo "### Log de runtime dos testes"
+            tail -60 backend/target/test-server.log 2>/dev/null || echo "(sem log)"
           } >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
 
-          # Falhas por teste com a primeira linha da excecao (classe.metodo: mensagem)
-          for xml in backend/target/failsafe-reports/*.xml backend/target/surefire-reports/*.xml; do
-            [ -f "$xml" ] || continue
-            tr '\n' ' ' < "$xml" | grep -oE '<testcase name="[^"]{1,80}"[^>]*>\s*<(failure|error)[^>]*message="[^"]{0,300}"' \
-              | sed -E 's/<testcase name="([^"]*)".*message="([^"]*)"/\1 :: \2/' | head -10 | cut -c1-360
-          done
-          # Causa raiz (runtime) do log dos testes
-          grep -hE "UNEXPECTED_ERROR|DuplicateKey|Constrain|IllegalArgument|HttpMessageNotReadable|SystemException" \
-            backend/target/test-server.log 2>/dev/null | tail -8 | cut -c1-360
-          {
-            grep -hE "Caused by:|^Error creating bean|Schema-validation|Migration V|UnsatisfiedDependency|No qualifying bean|BeanCreationException" \
-              backend/target/failsafe-reports/*.txt backend/target/surefire-reports/*.txt 2>/dev/null | cut -c1-420
-            grep -hE "AssertionFailedError|AssertionError|expected:|but was|Status expected|Verification failed|Wanted but not invoked|JSON path" \
-              backend/target/failsafe-reports/*.txt backend/target/surefire-reports/*.txt 2>/dev/null | cut -c1-400
-            grep -E "^\[ERROR\].*(error:|\.java:\[|cannot find symbol|does not exist|COMPILATION ERROR)" build.log | cut -c1-420
-            grep -E "BUILD FAILURE|Tests run:.*Failures|You have [0-9]+ Checkstyle|ERROR.*Failed to execute" build.log | cut -c1-420
-            # Testes falhos por nome (classe.metodo) - sempre presente nos XML
-            for xml in backend/target/failsafe-reports/*.xml backend/target/surefire-reports/*.xml; do
-              [ -f "$xml" ] || continue
-              grep -oE '<testcase name="[^"]{1,120}" classname="[^"]{1,160}"[^>]*>' "$xml" \
-                | grep -f <(grep -oE '<testcase[^>]*>' "$xml" | tail -n +1 >/dev/null; echo -n "") 2>/dev/null || true
+          # ---------------------------------------------------------- annotations
+          # 1) teste a teste, com a mensagem da falha (XML do surefire/failsafe)
+          python3 scripts/ci-annotations.py || true
+
+          # 2) erros de compilacao
+          grep -E "^\[ERROR\].*(error:|\.java:\[|cannot find symbol|COMPILATION ERROR)" build.log \
+            | head -8 | cut -c1-380 | while IFS= read -r line; do
+              echo "::error title=Compilacao::${line}"
             done
-            # XML: qualquer elemento failure/error (com ou sem atributos)
-            for xml in backend/target/failsafe-reports/*.xml backend/target/surefire-reports/*.xml; do
-              [ -f "$xml" ] || continue
-              grep -lE '<(failure|error)[ >]' "$xml" 2>/dev/null | while read -r f; do
-                echo "ARQUIVO_FALHAS=$(basename "$f")"
-              done
+
+          # 3) falhas de contexto/runtime (bean, migration, schema)
+          grep -hE "Caused by:|Schema-validation|Migration V|BeanCreationException|UNEXPECTED_ERROR" \
+            backend/target/test-server.log backend/target/failsafe-reports/*.txt \
+            backend/target/surefire-reports/*.txt 2>/dev/null \
+            | head -8 | cut -c1-380 | while IFS= read -r line; do
+              echo "::error title=Runtime::${line}"
             done
-            grep -hE "^\s+at br\.com\.educamais" backend/target/*-reports/*.txt 2>/dev/null | head -6 | cut -c1-200
-          } | head -26 | while IFS= read -r line; do
-            echo "::error title=CI::${line}"
-          done
 
       - name: Diagnostico de runtime (erros 500)
         if: failure()
