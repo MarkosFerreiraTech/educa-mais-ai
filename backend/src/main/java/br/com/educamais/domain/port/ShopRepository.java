@@ -7,6 +7,8 @@ import java.util.UUID;
 
 public interface ShopRepository {
 
+    ShopItem save(ShopItem item);
+
     List<ShopItem> findAll();
 
     Optional<ShopItem> findByCode(String code);

@@ -4,6 +4,7 @@ import br.com.educamais.domain.model.ShopItem;
 import br.com.educamais.domain.port.ShopRepository;
 import br.com.educamais.infrastructure.persistence.EntityMapper;
 import br.com.educamais.infrastructure.persistence.entity.OwnedItemEntity;
+import br.com.educamais.infrastructure.persistence.entity.ShopItemEntity;
 import br.com.educamais.infrastructure.persistence.jpa.OwnedItemJpaRepository;
 import br.com.educamais.infrastructure.persistence.jpa.ShopItemJpaRepository;
 import java.time.Instant;
@@ -22,6 +23,15 @@ public class ShopPersistenceAdapter implements ShopRepository {
                                   OwnedItemJpaRepository ownedRepository) {
         this.itemRepository = itemRepository;
         this.ownedRepository = ownedRepository;
+    }
+
+    @Override
+    public ShopItem save(ShopItem item) {
+        ShopItemEntity entity = EntityMapper.toEntity(item);
+        if (entity.getId() == null) {
+            entity.setId(UUID.randomUUID());
+        }
+        return EntityMapper.toDomain(itemRepository.save(entity));
     }
 
     @Override
