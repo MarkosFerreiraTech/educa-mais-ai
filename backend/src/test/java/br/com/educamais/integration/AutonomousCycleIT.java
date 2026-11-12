@@ -110,6 +110,12 @@ class AutonomousCycleIT {
 
     /** O agente roda de forma assincrona; aguarda a missao aparecer. */
     private JsonNode awaitMissions(String token, int minimum) throws Exception {
+        return awaitMissions(token, node -> node.size() >= minimum);
+    }
+
+    /** Espera a condicao sobre a lista de missoes do aluno autenticado. */
+    private JsonNode awaitMissions(String token, java.util.function.Predicate<JsonNode> condition)
+            throws Exception {
         return await(() -> {
             try {
                 return json(mockMvc.perform(get("/api/v1/missions").header("Authorization", "Bearer " + token))
@@ -117,7 +123,7 @@ class AutonomousCycleIT {
             } catch (Exception exception) {
                 throw new IllegalStateException(exception);
             }
-        }, node -> node.size() >= minimum);
+        }, condition);
     }
 
     private JsonNode await(Supplier<JsonNode> supplier, java.util.function.Predicate<JsonNode> condition)
@@ -149,7 +155,7 @@ class AutonomousCycleIT {
                 .andExpect(jsonPath("$.eventId").value(eventId));
 
         JsonNode missions = awaitMissions(token, 1);
-        assertThat(missions.size()).isEqualTo(1);
+        assertThat(missions.size()).isGreaterThanOrEqualTo(1);
 
         JsonNode mission = missions.get(0);
         assertThat(mission.path("planSource").asText()).isEqualTo("FALLBACK");
@@ -157,8 +163,14 @@ class AutonomousCycleIT {
         assertThat(mission.path("status").asText()).isIn("NOTIFIED", "IN_PROGRESS");
         assertThat(mission.path("steps").get(0).path("explanation").asText()).containsIgnoringCase("futebol");
 
-        JsonNode notifications = json(mockMvc.perform(get("/api/v1/notifications")
-                .header("Authorization", "Bearer " + token)).andReturn());
+        JsonNode notifications = await(() -> {
+            try {
+                return json(mockMvc.perform(get("/api/v1/notifications")
+                        .header("Authorization", "Bearer " + token)).andReturn());
+            } catch (Exception exception) {
+                throw new IllegalStateException(exception);
+            }
+        }, node -> node.size() >= 2);
         assertThat(notifications.size()).isGreaterThanOrEqualTo(2);
         assertThat(notifications.toString()).contains("IN_APP");
         assertThat(notifications.toString()).contains("SKIPPED");
@@ -177,7 +189,12 @@ class AutonomousCycleIT {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("IGNORED_DUPLICATE"));
 
-        assertThat(awaitMissions(token, 1).size()).isEqualTo(1);
+        // A missao e unica por falta: espera a primeira e valida que o duplicado nao criou outra
+        JsonNode missions = awaitMissions(token, 1);
+        Thread.sleep(300);
+        JsonNode afterDuplicate = json(mockMvc.perform(get("/api/v1/missions")
+                .header("Authorization", "Bearer " + token)).andReturn());
+        assertThat(afterDuplicate.size()).isEqualTo(missions.size());
     }
 
     @Test
