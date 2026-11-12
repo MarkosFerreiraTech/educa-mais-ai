@@ -48,7 +48,6 @@ public class AuthService {
 
     /** Atualiza interesses apos o cadastro, mantendo o onboarding coerente (RF03). */
     @Transactional
-    @org.springframework.transaction.annotation.Transactional
     public Student updateInterests(UUID studentId, List<Interest> interests) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new BusinessRuleException("RESOURCE_NOT_FOUND", "Aluno nao encontrado"));
