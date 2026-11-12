@@ -72,7 +72,7 @@ jobs:
             done
 
           # 3) falhas de contexto/runtime (bean, migration, schema)
-          grep -hE "Caused by:|Schema-validation|Migration V|BeanCreationException|UNEXPECTED_ERROR" \
+          grep -hE "Caused by:|Schema-validation|Migration V|BeanCreationException|UNEXPECTED_ERROR|ATTENDANCE_EVENT_FAILED|VALIDATION_ERROR|AGENT_PLAN" \
             backend/target/test-server.log backend/target/failsafe-reports/*.txt \
             backend/target/surefire-reports/*.txt 2>/dev/null \
             | head -8 | cut -c1-380 | while IFS= read -r line; do
