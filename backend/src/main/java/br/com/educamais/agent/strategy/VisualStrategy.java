@@ -27,6 +27,8 @@ public class VisualStrategy implements PedagogicalStrategy {
 
     @Override
     public String templateExample(String objective, String interestHint) {
-        return "Desenhe uma reta de 0 a 1 com 4 marcas. Cada marca e 1/4. Duas marcas equivalem a 2/4 = 1/2.";
+        return ("Desenhe uma reta de 0 a 1 com 4 marcas pensando em %s: cada marca e 1/4 e duas marcas "
+                + "equivalem a 2/4 = 1/2.").formatted(interestHint == null ? "uma situacao do dia a dia"
+                : interestHint);
     }
 }

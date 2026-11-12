@@ -27,6 +27,8 @@ public class StepByStepStrategy implements PedagogicalStrategy {
 
     @Override
     public String templateExample(String objective, String interestHint) {
-        return "Passo 1: 4 tempos de jogo. Passo 2: 3 tempos com gol. Passo 3: fracao 3/4 = 75%.";
+        return ("Passo 1: divida uma situacao de %s em 4 partes iguais. Passo 2: conte 3 partes. "
+                + "Passo 3: escreva a fracao 3/4 = 75%.").formatted(interestHint == null ? "seu cotidiano"
+                : interestHint);
     }
 }
