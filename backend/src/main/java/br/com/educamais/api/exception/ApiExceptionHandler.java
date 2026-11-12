@@ -71,6 +71,25 @@ public class ApiExceptionHandler {
         return ResponseEntity.badRequest().body(error);
     }
 
+    /**
+     * Erros do proprio Spring MVC (JSON invalido, tipo incompativel, rota inexistente,
+     * metodo nao suportado) preservam o status original em vez de virar 500.
+     */
+    @ExceptionHandler(org.springframework.web.ErrorResponse.class)
+    public ResponseEntity<ApiError> handleSpringMvc(org.springframework.web.ErrorResponse exception,
+                                                    HttpServletRequest request) {
+        HttpStatus status = HttpStatus.valueOf(exception.getStatusCode().value());
+        String code = switch (status) {
+            case BAD_REQUEST -> "MALFORMED_REQUEST";
+            case NOT_FOUND -> "ENDPOINT_NOT_FOUND";
+            case METHOD_NOT_ALLOWED -> "METHOD_NOT_ALLOWED";
+            case UNSUPPORTED_MEDIA_TYPE -> "UNSUPPORTED_MEDIA_TYPE";
+            default -> "REQUEST_ERROR";
+        };
+        return ResponseEntity.status(status)
+                .body(ApiError.of(status.value(), code, "Requisicao invalida", request.getRequestURI()));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleUnexpected(Exception exception, HttpServletRequest request) {
         log.error("UNEXPECTED_ERROR path={} type={}", request.getRequestURI(),
