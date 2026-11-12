@@ -168,7 +168,7 @@
 | **RNF29** | Configuração por **variáveis de ambiente** (12-factor), com `.env.example` versionado e segredos fora do Git. | Portabilidade | 12-factor | `.env.example` |
 | **RNF30** | **Observabilidade**: logs JSON estruturados com `traceId`, métricas Micrometer e health checks. | Observabilidade | 100% requests | `logback-spring.xml`, Actuator |
 | **RNF31** | Disponibilidade alvo **99,5%/mês** com *health check* e reinício automático. | Disponibilidade | 99,5% | App Runner health config |
-| **RNF32** | Migrações de banco versionadas com **Flyway**, sempre *forward-only* e idempotentes. | Confiabilidade | 100% versionado | `db/migration` |
+| **RNF32** | Migrações de banco versionadas com **Flyway**, sempre *forward-only* e idempotentes. | Confiabilidade | 100% versionado | `db/migration` (Postgres) e `db/migration-h2` (H2) |
 | **RNF33** | Tempo de *boot* da API **≤ 25 s** (frio) para o App Runner. | Desempenho | ≤ 25 s | Medição de startup |
 
 ---

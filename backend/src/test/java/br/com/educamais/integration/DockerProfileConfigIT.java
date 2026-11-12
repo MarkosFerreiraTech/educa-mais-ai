@@ -7,6 +7,7 @@ import java.sql.Driver;
 import java.sql.DriverManager;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -89,13 +90,74 @@ class DockerProfileConfigIT {
     }
 
     @Test
+    @DisplayName("nenhuma location do Flyway tem versao duplicada (scan e recursivo)")
+    void nenhumaLocationTemVersaoDuplicada() throws Exception {
+        // O Flyway varre a location RECURSIVAMENTE. Quando as migrations do H2 ficavam em
+        // db/migration/h2, o scan de classpath:db/migration encontrava V1 duas vezes e o
+        // startup morria com "Found more than one migration with version 1".
+        for (String location : List.of("db/migration", "db/migration-h2")) {
+            Map<String, Long> occurrences = versionsByScan(location);
+            assertThat(occurrences.entrySet())
+                    .as("location " + location + " tem versao repetida: " + occurrences)
+                    .allSatisfy(entry -> assertThat(entry.getValue())
+                            .as("versao " + entry.getKey() + " aparece "
+                                    + entry.getValue() + "x em " + location)
+                            .isEqualTo(1L));
+            assertThat(occurrences).as("location vazia: " + location).isNotEmpty();
+        }
+    }
+
+    @Test
+    @DisplayName("as migrations do H2 ficam FORA da arvore varrida pelo perfil demo")
+    void migrationsH2ForaDaArvoreDoPostgres() throws Exception {
+        java.nio.file.Path postgresTree = java.nio.file.Path.of(
+                java.util.Objects.requireNonNull(
+                        getClass().getResource("/db/migration")).toURI());
+        java.nio.file.Path h2Tree = java.nio.file.Path.of(
+                java.util.Objects.requireNonNull(
+                        getClass().getResource("/db/migration-h2")).toURI());
+
+        assertThat(h2Tree.startsWith(postgresTree))
+                .as("db/migration-h2 dentro de db/migration = scan recursivo pega as duas V1")
+                .isFalse();
+    }
+
+    /**
+     * Replica o scan do Flyway (recursivo) sobre os recursos de teste.
+     *
+     * <p>Os testes rodam com {@code target/test-classes} no classpath, entao a location e um
+     * diretorio real; se virar jar no futuro, o teste falha de forma explicita em vez de
+     * passar silenciosamente.</p>
+     */
+    private static Map<String, Long> versionsByScan(String location) throws Exception {
+        java.net.URL url = DockerProfileConfigIT.class.getClassLoader().getResource(location);
+        assertThat(url).as("location inexistente no classpath: " + location).isNotNull();
+        assertThat(url.getProtocol()).as("scan precisa de diretorio real, nao jar").isEqualTo("file");
+        java.nio.file.Path root = java.nio.file.Path.of(url.toURI());
+        Pattern migration = Pattern.compile("^V(\\d+(?:_\\d+)?)__.*\\.sql$");
+
+        Map<String, Long> versions = new java.util.TreeMap<>();
+        try (java.util.stream.Stream<java.nio.file.Path> files = java.nio.file.Files.walk(root)) {
+            files.filter(java.nio.file.Files::isRegularFile)
+                    .map(path -> path.getFileName().toString())
+                    .forEach(name -> {
+                        Matcher matcher = migration.matcher(name);
+                        if (matcher.matches()) {
+                            versions.merge(matcher.group(1), 1L, Long::sum);
+                        }
+                    });
+        }
+        return versions;
+    }
+
+    @Test
     @DisplayName("o perfil dev continua sendo H2 (uso local sem Docker)")
     void devContinuaH2() {
         Properties dev = loadYaml("application-" + DEV + ".yml");
 
         assertThat(dev.getProperty("spring.datasource.driver-class-name")).isEqualTo("org.h2.Driver");
         assertThat(dev.getProperty("spring.datasource.url")).contains("jdbc:h2:mem:");
-        assertThat(dev.getProperty("spring.flyway.locations")).contains("db/migration/h2");
+        assertThat(dev.getProperty("spring.flyway.locations")).contains("db/migration-h2");
     }
 
     // ------------------------------------------------------------------ helpers

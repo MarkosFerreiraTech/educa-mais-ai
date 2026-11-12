@@ -9,21 +9,26 @@
         </encoder>
     </appender>
 
-    <appender name="JSON" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-            <includeMdcKeyName>traceId</includeMdcKeyName>
-            <includeMdcKeyName>studentRef</includeMdcKeyName>
-            <customFields>{"application":"educa-mais-api"}</customFields>
-        </encoder>
-    </appender>
-
+    <!-- Perfis locais: log legivel no terminal (docker compose logs api). -->
     <springProfile name="dev,demo">
         <root level="INFO">
             <appender-ref ref="CONSOLE"/>
         </root>
     </springProfile>
 
+    <!-- Producao: JSON estruturado para CloudWatch/OpenSearch.
+         O appender e declarado DENTRO do springProfile: declarado no topo e sem
+         referencia em dev/demo, o Logback emite
+         "Appender named [JSON] not referenced. Skipping further processing."
+         em todo startup. -->
     <springProfile name="prod">
+        <appender name="JSON" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <includeMdcKeyName>traceId</includeMdcKeyName>
+                <includeMdcKeyName>studentRef</includeMdcKeyName>
+                <customFields>{"application":"educa-mais-api"}</customFields>
+            </encoder>
+        </appender>
         <root level="INFO">
             <appender-ref ref="JSON"/>
         </root>
