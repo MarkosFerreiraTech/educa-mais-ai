@@ -4,6 +4,7 @@ import br.com.educamais.domain.model.GamificationProfile;
 import br.com.educamais.domain.model.RewardEntry;
 import br.com.educamais.domain.port.GamificationRepository;
 import br.com.educamais.infrastructure.persistence.EntityMapper;
+import br.com.educamais.infrastructure.persistence.entity.GamificationEntity;
 import br.com.educamais.infrastructure.persistence.jpa.GamificationJpaRepository;
 import br.com.educamais.infrastructure.persistence.jpa.RewardJpaRepository;
 import java.util.List;
@@ -25,7 +26,9 @@ public class GamificationPersistenceAdapter implements GamificationRepository {
 
     @Override
     public GamificationProfile save(GamificationProfile profile) {
-        return EntityMapper.toDomain(profileRepository.save(EntityMapper.toEntity(profile)));
+        GamificationEntity entity = profileRepository.findById(profile.studentId())
+                .orElseGet(GamificationEntity::new);
+        return EntityMapper.toDomain(profileRepository.save(EntityMapper.toEntity(entity, profile)));
     }
 
     @Override

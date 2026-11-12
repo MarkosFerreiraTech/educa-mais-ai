@@ -3,6 +3,7 @@ package br.com.educamais.infrastructure.persistence.adapter;
 import br.com.educamais.domain.model.Attendance;
 import br.com.educamais.domain.port.AttendanceRepository;
 import br.com.educamais.infrastructure.persistence.EntityMapper;
+import br.com.educamais.infrastructure.persistence.entity.AttendanceEntity;
 import br.com.educamais.infrastructure.persistence.jpa.AttendanceJpaRepository;
 import java.util.Optional;
 import java.util.UUID;
@@ -19,7 +20,10 @@ public class AttendancePersistenceAdapter implements AttendanceRepository {
 
     @Override
     public Attendance save(Attendance attendance) {
-        return EntityMapper.toDomain(repository.save(EntityMapper.toEntity(attendance)));
+        // Reaproveita a entidade gerenciada quando ela ja existe no persistence context
+        AttendanceEntity entity = repository.findById(attendance.id())
+                .orElseGet(AttendanceEntity::new);
+        return EntityMapper.toDomain(repository.save(EntityMapper.toEntity(entity, attendance)));
     }
 
     @Override

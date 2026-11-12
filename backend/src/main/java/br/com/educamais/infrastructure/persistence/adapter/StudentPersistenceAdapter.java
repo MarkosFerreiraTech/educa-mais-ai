@@ -4,6 +4,7 @@ import br.com.educamais.crypto.CryptoSupport;
 import br.com.educamais.domain.model.Student;
 import br.com.educamais.domain.port.StudentRepository;
 import br.com.educamais.infrastructure.persistence.EntityMapper;
+import br.com.educamais.infrastructure.persistence.entity.StudentEntity;
 import br.com.educamais.infrastructure.persistence.jpa.StudentJpaRepository;
 import java.util.List;
 import java.util.Optional;
@@ -21,7 +22,10 @@ public class StudentPersistenceAdapter implements StudentRepository {
 
     @Override
     public Student save(Student student) {
-        return EntityMapper.toDomain(repository.save(EntityMapper.toEntity(student)));
+        // Reaproveita a entidade gerenciada quando ela ja existe no persistence context
+        StudentEntity entity = repository.findById(student.id())
+                .orElseGet(StudentEntity::new);
+        return EntityMapper.toDomain(repository.save(EntityMapper.toEntity(entity, student)));
     }
 
     @Override

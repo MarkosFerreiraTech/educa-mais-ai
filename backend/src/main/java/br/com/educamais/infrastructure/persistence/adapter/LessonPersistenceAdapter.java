@@ -3,6 +3,7 @@ package br.com.educamais.infrastructure.persistence.adapter;
 import br.com.educamais.domain.model.Lesson;
 import br.com.educamais.domain.port.LessonRepository;
 import br.com.educamais.infrastructure.persistence.EntityMapper;
+import br.com.educamais.infrastructure.persistence.entity.LessonEntity;
 import br.com.educamais.infrastructure.persistence.jpa.LessonJpaRepository;
 import java.util.Optional;
 import java.util.UUID;
@@ -19,7 +20,10 @@ public class LessonPersistenceAdapter implements LessonRepository {
 
     @Override
     public Lesson save(Lesson lesson) {
-        return EntityMapper.toDomain(repository.save(EntityMapper.toEntity(lesson)));
+        // Reaproveita a entidade gerenciada quando ela ja existe no persistence context
+        LessonEntity entity = repository.findById(lesson.id())
+                .orElseGet(LessonEntity::new);
+        return EntityMapper.toDomain(repository.save(EntityMapper.toEntity(entity, lesson)));
     }
 
     @Override

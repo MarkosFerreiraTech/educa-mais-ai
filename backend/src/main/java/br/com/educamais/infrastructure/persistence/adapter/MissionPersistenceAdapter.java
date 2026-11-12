@@ -3,6 +3,7 @@ package br.com.educamais.infrastructure.persistence.adapter;
 import br.com.educamais.domain.model.Mission;
 import br.com.educamais.domain.port.MissionRepository;
 import br.com.educamais.infrastructure.persistence.EntityMapper;
+import br.com.educamais.infrastructure.persistence.entity.MissionEntity;
 import br.com.educamais.infrastructure.persistence.jpa.MissionJpaRepository;
 import java.util.List;
 import java.util.Optional;
@@ -20,7 +21,10 @@ public class MissionPersistenceAdapter implements MissionRepository {
 
     @Override
     public Mission save(Mission mission) {
-        return EntityMapper.toDomain(repository.save(EntityMapper.toEntity(mission)));
+        // Reaproveita a entidade gerenciada quando ela ja existe no persistence context
+        MissionEntity entity = repository.findById(mission.id())
+                .orElseGet(MissionEntity::new);
+        return EntityMapper.toDomain(repository.save(EntityMapper.toEntity(entity, mission)));
     }
 
     @Override

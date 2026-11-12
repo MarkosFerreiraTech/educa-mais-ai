@@ -3,6 +3,7 @@ package br.com.educamais.infrastructure.persistence.adapter;
 import br.com.educamais.domain.model.TeacherReport;
 import br.com.educamais.domain.port.ReportRepository;
 import br.com.educamais.infrastructure.persistence.EntityMapper;
+import br.com.educamais.infrastructure.persistence.entity.ReportEntity;
 import br.com.educamais.infrastructure.persistence.jpa.ReportJpaRepository;
 import java.util.List;
 import java.util.Optional;
@@ -20,7 +21,10 @@ public class ReportPersistenceAdapter implements ReportRepository {
 
     @Override
     public TeacherReport save(TeacherReport report) {
-        return EntityMapper.toDomain(repository.save(EntityMapper.toEntity(report)));
+        // Reaproveita a entidade gerenciada quando ela ja existe no persistence context
+        ReportEntity entity = repository.findById(report.id())
+                .orElseGet(ReportEntity::new);
+        return EntityMapper.toDomain(repository.save(EntityMapper.toEntity(entity, report)));
     }
 
     @Override

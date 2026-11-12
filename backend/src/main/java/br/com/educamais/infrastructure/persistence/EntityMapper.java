@@ -57,7 +57,11 @@ public final class EntityMapper {
     /* ------------------------------- Student ------------------------------- */
 
     public static StudentEntity toEntity(Student student) {
-        StudentEntity entity = new StudentEntity();
+        return toEntity(new StudentEntity(), student);
+    }
+
+    /** Reaproveita a instancia gerenciada pelo JPA e apenas atualiza os campos. */
+    public static StudentEntity toEntity(StudentEntity entity, Student student) {
         entity.setId(student.id() == null ? UUID.randomUUID() : student.id());
         entity.setName(student.name());
         entity.setEmail(student.email());
@@ -117,7 +121,11 @@ public final class EntityMapper {
     /* ------------------------------- Lesson -------------------------------- */
 
     public static LessonEntity toEntity(Lesson lesson) {
-        LessonEntity entity = new LessonEntity();
+        return toEntity(new LessonEntity(), lesson);
+    }
+
+    /** Reaproveita a instancia gerenciada pelo JPA e apenas atualiza os campos. */
+    public static LessonEntity toEntity(LessonEntity entity, Lesson lesson) {
         entity.setId(lesson.id() == null ? UUID.randomUUID() : lesson.id());
         entity.setClassroomId(lesson.classroomId());
         entity.setSubject(lesson.subject());
@@ -140,7 +148,11 @@ public final class EntityMapper {
     /* ------------------------------ Attendance ----------------------------- */
 
     public static AttendanceEntity toEntity(Attendance attendance) {
-        AttendanceEntity entity = new AttendanceEntity();
+        return toEntity(new AttendanceEntity(), attendance);
+    }
+
+    /** Reaproveita a instancia gerenciada pelo JPA e apenas atualiza os campos. */
+    public static AttendanceEntity toEntity(AttendanceEntity entity, Attendance attendance) {
         entity.setId(attendance.id() == null ? UUID.randomUUID() : attendance.id());
         entity.setStudentId(attendance.studentId());
         entity.setLessonId(attendance.lessonId());
@@ -160,7 +172,11 @@ public final class EntityMapper {
     /* -------------------------------- Mission ------------------------------ */
 
     public static MissionEntity toEntity(Mission mission) {
-        MissionEntity entity = new MissionEntity();
+        return toEntity(new MissionEntity(), mission);
+    }
+
+    /** Reaproveita a instancia gerenciada pelo JPA e apenas atualiza os campos. */
+    public static MissionEntity toEntity(MissionEntity entity, Mission mission) {
         entity.setId(mission.id() == null ? UUID.randomUUID() : mission.id());
         entity.setAttendanceId(mission.attendanceId());
         entity.setStudentId(mission.studentId());
@@ -176,7 +192,11 @@ public final class EntityMapper {
     }
 
     public static MissionStepEntity toEntity(MissionStep step) {
-        MissionStepEntity entity = new MissionStepEntity();
+        return toEntity(new MissionStepEntity(), step);
+    }
+
+    /** Reaproveita a instancia gerenciada pelo JPA e apenas atualiza os campos. */
+    public static MissionStepEntity toEntity(MissionStepEntity entity, MissionStep step) {
         entity.setId(step.id() == null ? UUID.randomUUID() : step.id());
         entity.setStepOrder(step.order());
         entity.setObjective(step.objective());
@@ -207,7 +227,11 @@ public final class EntityMapper {
     /* ----------------------------- Gamification ---------------------------- */
 
     public static GamificationEntity toEntity(GamificationProfile profile) {
-        GamificationEntity entity = new GamificationEntity();
+        return toEntity(new GamificationEntity(), profile);
+    }
+
+    /** Reaproveita a instancia gerenciada pelo JPA e apenas atualiza os campos. */
+    public static GamificationEntity toEntity(GamificationEntity entity, GamificationProfile profile) {
         entity.setStudentId(profile.studentId());
         entity.setTotalXp(profile.totalXp());
         entity.setDiamonds(profile.diamonds());
@@ -227,7 +251,11 @@ public final class EntityMapper {
     /* ------------------------------- Reward -------------------------------- */
 
     public static RewardEntity toEntity(RewardEntry entry) {
-        RewardEntity entity = new RewardEntity();
+        return toEntity(new RewardEntity(), entry);
+    }
+
+    /** Reaproveita a instancia gerenciada pelo JPA e apenas atualiza os campos. */
+    public static RewardEntity toEntity(RewardEntity entity, RewardEntry entry) {
         entity.setId(entry.id() == null ? UUID.randomUUID() : entry.id());
         entity.setStudentId(entry.studentId());
         entity.setMissionId(entry.missionId());
@@ -247,7 +275,11 @@ public final class EntityMapper {
     /* ---------------------------- Notification ----------------------------- */
 
     public static NotificationEntity toEntity(Notification notification) {
-        NotificationEntity entity = new NotificationEntity();
+        return toEntity(new NotificationEntity(), notification);
+    }
+
+    /** Reaproveita a instancia gerenciada pelo JPA e apenas atualiza os campos. */
+    public static NotificationEntity toEntity(NotificationEntity entity, Notification notification) {
         entity.setId(notification.id() == null ? UUID.randomUUID() : notification.id());
         entity.setStudentId(notification.studentId());
         entity.setMissionId(notification.missionId());
@@ -277,7 +309,11 @@ public final class EntityMapper {
     /* -------------------------------- Report ------------------------------- */
 
     public static ReportEntity toEntity(TeacherReport report) {
-        ReportEntity entity = new ReportEntity();
+        return toEntity(new ReportEntity(), report);
+    }
+
+    /** Reaproveita a instancia gerenciada pelo JPA e apenas atualiza os campos. */
+    public static ReportEntity toEntity(ReportEntity entity, TeacherReport report) {
         entity.setId(report.id() == null ? UUID.randomUUID() : report.id());
         entity.setMissionId(report.missionId());
         entity.setStudentId(report.studentId());
@@ -301,7 +337,11 @@ public final class EntityMapper {
     /* ------------------------------ Question ------------------------------- */
 
     public static QuestionEntity toEntity(DiagnosticQuestion question) {
-        QuestionEntity entity = new QuestionEntity();
+        return toEntity(new QuestionEntity(), question);
+    }
+
+    /** Reaproveita a instancia gerenciada pelo JPA e apenas atualiza os campos. */
+    public static QuestionEntity toEntity(QuestionEntity entity, DiagnosticQuestion question) {
         entity.setId(question.id() == null ? UUID.randomUUID() : question.id());
         entity.setMissionId(question.missionId());
         entity.setStepId(question.stepId());
@@ -323,7 +363,11 @@ public final class EntityMapper {
     /* ------------------------------- Attempt ------------------------------- */
 
     public static AttemptEntity toEntity(DiagnosticAttempt attempt) {
-        AttemptEntity entity = new AttemptEntity();
+        return toEntity(new AttemptEntity(), attempt);
+    }
+
+    /** Reaproveita a instancia gerenciada pelo JPA e apenas atualiza os campos. */
+    public static AttemptEntity toEntity(AttemptEntity entity, DiagnosticAttempt attempt) {
         entity.setId(attempt.id() == null ? UUID.randomUUID() : attempt.id());
         entity.setQuestionId(attempt.questionId());
         entity.setStudentId(attempt.studentId());
@@ -344,7 +388,11 @@ public final class EntityMapper {
     /* ------------------------------- Shop ---------------------------------- */
 
     public static ShopItemEntity toEntity(ShopItem item) {
-        ShopItemEntity entity = new ShopItemEntity();
+        return toEntity(new ShopItemEntity(), item);
+    }
+
+    /** Reaproveita a instancia gerenciada pelo JPA e apenas atualiza os campos. */
+    public static ShopItemEntity toEntity(ShopItemEntity entity, ShopItem item) {
         entity.setId(item.id() == null ? UUID.randomUUID() : item.id());
         entity.setCode(item.code());
         entity.setName(item.name());

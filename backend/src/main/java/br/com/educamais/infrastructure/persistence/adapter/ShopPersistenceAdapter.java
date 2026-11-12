@@ -27,11 +27,10 @@ public class ShopPersistenceAdapter implements ShopRepository {
 
     @Override
     public ShopItem save(ShopItem item) {
-        ShopItemEntity entity = EntityMapper.toEntity(item);
-        if (entity.getId() == null) {
-            entity.setId(UUID.randomUUID());
-        }
-        return EntityMapper.toDomain(itemRepository.save(entity));
+        ShopItemEntity entity = item.id() == null
+                ? new ShopItemEntity()
+                : itemRepository.findById(item.id()).orElseGet(ShopItemEntity::new);
+        return EntityMapper.toDomain(itemRepository.save(EntityMapper.toEntity(entity, item)));
     }
 
     @Override
