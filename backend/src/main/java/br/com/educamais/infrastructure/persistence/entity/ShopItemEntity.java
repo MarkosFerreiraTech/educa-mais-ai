@@ -28,7 +28,7 @@ public class ShopItemEntity {
     @Column(name = "asset_url", length = 240)
     private String assetUrl;
 
-    protected ShopItemEntity() {
+    public ShopItemEntity() {
     }
 
     public UUID getId() {

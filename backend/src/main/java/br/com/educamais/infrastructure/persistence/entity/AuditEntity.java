@@ -32,7 +32,7 @@ public class AuditEntity {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-    protected AuditEntity() {
+    public AuditEntity() {
     }
 
     public UUID getId() {

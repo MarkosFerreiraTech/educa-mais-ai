@@ -59,7 +59,7 @@ public class StudentEntity {
     @Column(name = "version")
     private Long version;
 
-    protected StudentEntity() {
+    public StudentEntity() {
     }
 
     public UUID getId() {

@@ -38,7 +38,7 @@ public class AttemptEntity {
     @Column(name = "time_spent_seconds", nullable = false)
     private int timeSpentSeconds;
 
-    protected AttemptEntity() {
+    public AttemptEntity() {
     }
 
     public UUID getId() {

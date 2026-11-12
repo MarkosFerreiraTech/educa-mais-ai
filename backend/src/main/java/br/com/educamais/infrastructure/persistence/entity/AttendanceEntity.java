@@ -32,7 +32,7 @@ public class AttendanceEntity {
     @Column(name = "occurred_at", nullable = false)
     private Instant occurredAt;
 
-    protected AttendanceEntity() {
+    public AttendanceEntity() {
     }
 
     public UUID getId() {

@@ -45,7 +45,7 @@ public class MissionEntity {
     @OrderBy("stepOrder ASC")
     private List<MissionStepEntity> steps = new ArrayList<>();
 
-    protected MissionEntity() {
+    public MissionEntity() {
     }
 
     public void addStep(MissionStepEntity step) {

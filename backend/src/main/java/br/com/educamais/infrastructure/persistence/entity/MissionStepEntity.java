@@ -41,7 +41,7 @@ public class MissionStepEntity {
     @Column(name = "attempts", nullable = false)
     private int attempts;
 
-    protected MissionStepEntity() {
+    public MissionStepEntity() {
     }
 
     public UUID getId() {

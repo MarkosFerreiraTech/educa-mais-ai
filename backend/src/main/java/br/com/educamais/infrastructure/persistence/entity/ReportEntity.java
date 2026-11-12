@@ -41,7 +41,7 @@ public class ReportEntity {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-    protected ReportEntity() {
+    public ReportEntity() {
     }
 
     public UUID getId() {

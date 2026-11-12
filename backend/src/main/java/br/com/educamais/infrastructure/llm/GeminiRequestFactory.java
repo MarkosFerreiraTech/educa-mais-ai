@@ -95,7 +95,7 @@ public class GeminiRequestFactory {
 
     /** Ferramentas internas expostas ao modelo (Tool Calling); o backend executa a consulta real. */
     private void addTools(ObjectNode payload, int maxSteps) {
-        ObjectNode functionDeclarations = payload.putArray("tools").addObject()
+        ArrayNode functionDeclarations = payload.putArray("tools").addObject()
                 .putArray("functionDeclarations");
 
         ObjectNode syllabus = functionDeclarations.addObject();

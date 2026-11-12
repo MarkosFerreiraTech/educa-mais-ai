@@ -1,6 +1,5 @@
 package br.com.educamais.bootstrap;
 
-import br.com.educamais.api.dto.RegisterRequest;
 import br.com.educamais.domain.enums.InterestCode;
 import br.com.educamais.domain.model.Interest;
 import br.com.educamais.domain.model.Lesson;
@@ -39,14 +38,12 @@ public class DemoDataSeeder implements ApplicationRunner {
     private final StudentRepository studentRepository;
     private final LessonRepository lessonRepository;
     private final ShopRepository shopRepository;
-    private final br.com.educamais.service.AuthService authService;
 
     public DemoDataSeeder(StudentRepository studentRepository, LessonRepository lessonRepository,
-                          ShopRepository shopRepository, br.com.educamais.service.AuthService authService) {
+                          ShopRepository shopRepository) {
         this.studentRepository = studentRepository;
         this.lessonRepository = lessonRepository;
         this.shopRepository = shopRepository;
-        this.authService = authService;
     }
 
     @Override
@@ -96,12 +93,5 @@ public class DemoDataSeeder implements ApplicationRunner {
                 "/assets/avatar/cap.png"));
         shopRepository.save(new ShopItem(null, "fone-gamer", "Fone Gamer", "ACCESSORY", 25, "/assets/avatar/headset.png"));
         log.info("DEMO_SHOP_CREATED items=4");
-    }
-
-    /** Helper usado pelos testes de integracao do fluxo demo. */
-    public void registerDemoStudent(RegisterRequest request) {
-        authService.register(request.name(), request.email(), request.phone(), request.birthDate(),
-                request.password(), List.of(Interest.of(InterestCode.FOOTBALL, 5)), DEMO_SCHOOL_ID,
-                DEMO_CLASSROOM_ID, true);
     }
 }

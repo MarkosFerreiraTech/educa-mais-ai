@@ -40,7 +40,7 @@ public class QuestionEntity {
     @Column(name = "difficulty", nullable = false)
     private int difficulty;
 
-    protected QuestionEntity() {
+    public QuestionEntity() {
     }
 
     public UUID getId() {

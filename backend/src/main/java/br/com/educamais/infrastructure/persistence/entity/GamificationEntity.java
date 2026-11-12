@@ -33,7 +33,7 @@ public class GamificationEntity {
     @Column(name = "last_streak_date")
     private LocalDate lastStreakDate;
 
-    protected GamificationEntity() {
+    public GamificationEntity() {
     }
 
     public UUID getStudentId() {

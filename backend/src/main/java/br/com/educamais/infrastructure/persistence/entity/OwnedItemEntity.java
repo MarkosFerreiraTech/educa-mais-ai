@@ -23,7 +23,7 @@ public class OwnedItemEntity {
     @Column(name = "acquired_at", nullable = false)
     private Instant acquiredAt;
 
-    protected OwnedItemEntity() {
+    public OwnedItemEntity() {
     }
 
     public UUID getId() {

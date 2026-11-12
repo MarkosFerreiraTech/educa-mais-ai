@@ -32,7 +32,7 @@ public class RewardEntity {
     @Column(name = "granted_at", nullable = false)
     private Instant grantedAt;
 
-    protected RewardEntity() {
+    public RewardEntity() {
     }
 
     public UUID getId() {

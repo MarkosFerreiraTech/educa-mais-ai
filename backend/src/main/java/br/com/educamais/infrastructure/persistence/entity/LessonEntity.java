@@ -38,7 +38,7 @@ public class LessonEntity {
     @Column(name = "source_reference", length = 240)
     private String sourceReference;
 
-    protected LessonEntity() {
+    public LessonEntity() {
     }
 
     public UUID getId() {

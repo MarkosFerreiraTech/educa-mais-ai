@@ -38,7 +38,7 @@ public class NotificationEntity {
     @Column(name = "sent_at")
     private Instant sentAt;
 
-    protected NotificationEntity() {
+    public NotificationEntity() {
     }
 
     public UUID getId() {
