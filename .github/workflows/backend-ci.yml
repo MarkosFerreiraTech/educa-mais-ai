@@ -74,12 +74,19 @@ jobs:
             grep -E "BUILD FAILURE|Tests run:.*Failures|You have [0-9]+ Checkstyle|ERROR.*Failed to execute" build.log | cut -c1-420
             grep -h -A6 "UNEXPECTED_ERROR" build.log backend/target/*-reports/*.txt 2>/dev/null \
               | grep -E "UNEXPECTED_ERROR|Exception:|at br\\.com\\.educamais" | cut -c1-420
-            # Detalhe das falhas: atributos <failure>/<error> dos XML do surefire/failsafe
+            # Testes falhos por nome (classe.metodo) - sempre presente nos XML
             for xml in backend/target/failsafe-reports/*.xml backend/target/surefire-reports/*.xml; do
               [ -f "$xml" ] || continue
-              grep -oE '<(failure|error)[^>]{0,500}' "$xml" | cut -c1-460
+              grep -oE '<testcase name="[^"]{1,120}" classname="[^"]{1,160}"[^>]*>' "$xml" \
+                | grep -f <(grep -oE '<testcase[^>]*>' "$xml" | tail -n +1 >/dev/null; echo -n "") 2>/dev/null || true
             done
-            # E as primeiras linhas de stack do log do console
+            # XML: qualquer elemento failure/error (com ou sem atributos)
+            for xml in backend/target/failsafe-reports/*.xml backend/target/surefire-reports/*.xml; do
+              [ -f "$xml" ] || continue
+              grep -lE '<(failure|error)[ >]' "$xml" 2>/dev/null | while read -r f; do
+                echo "ARQUIVO_FALHAS=$(basename "$f")"
+              done
+            done
             grep -hE "^\s+at br\.com\.educamais" backend/target/*-reports/*.txt 2>/dev/null | head -6 | cut -c1-200
           } | head -26 | while IFS= read -r line; do
             echo "::error title=CI::${line}"
