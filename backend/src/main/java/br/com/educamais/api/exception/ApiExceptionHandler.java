@@ -60,6 +60,23 @@ public class ApiExceptionHandler {
         return build(status, exception, request);
     }
 
+    /** Validacao aplicada pelo proprio Spring MVC (method validation) - mesmo contrato de erro. */
+    @ExceptionHandler(org.springframework.web.method.annotation.HandlerMethodValidationException.class)
+    public ResponseEntity<ApiError> handleMethodValidation(
+            org.springframework.web.method.annotation.HandlerMethodValidationException exception,
+            HttpServletRequest request) {
+        List<ApiError.FieldViolation> violations = exception.getAllValidationResults().stream()
+                .flatMap(result -> result.getResolvableErrors().stream()
+                        .map(error -> new ApiError.FieldViolation(String.valueOf(result.getMethodParameter()
+                                .getParameterName()), error.getDefaultMessage())))
+                .toList();
+        log.warn("VALIDATION_ERROR path={} origem=method-validation violacoes={}", request.getRequestURI(),
+                violations);
+        ApiError error = new ApiError(HttpStatus.BAD_REQUEST.value(), "VALIDATION_ERROR",
+                "Dados invalidos na requisicao", violations, java.time.Instant.now(), request.getRequestURI());
+        return ResponseEntity.badRequest().body(error);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleValidation(MethodArgumentNotValidException exception,
                                                      HttpServletRequest request) {
@@ -87,6 +104,8 @@ public class ApiExceptionHandler {
             org.springframework.web.HttpRequestMethodNotSupportedException.class,
             org.springframework.web.HttpMediaTypeNotSupportedException.class})
     public ResponseEntity<ApiError> handleSpringMvc(Exception exception, HttpServletRequest request) {
+        log.warn("REQUEST_INVALID type={} message={}", exception.getClass().getSimpleName(),
+                exception.getMessage());
         HttpStatus status = exception instanceof org.springframework.web.ErrorResponse errorResponse
                 ? HttpStatus.valueOf(errorResponse.getStatusCode().value())
                 : HttpStatus.BAD_REQUEST;
