@@ -58,7 +58,7 @@ jobs:
             -DsuppressionFiles=../security/dependency-check-suppressions.xml \
             -Dformat=HTML,SARIF
       - name: Publicar relatorio no GitHub Security
-        if: always()
+        if: always() && hashFiles('backend/target/dependency-check-report.sarif') != ''
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: backend/target/dependency-check-report.sarif

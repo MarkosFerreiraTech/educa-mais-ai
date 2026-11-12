@@ -72,8 +72,6 @@ jobs:
               backend/target/failsafe-reports/*.txt backend/target/surefire-reports/*.txt 2>/dev/null | cut -c1-400
             grep -E "^\[ERROR\].*(error:|\.java:\[|cannot find symbol|does not exist|COMPILATION ERROR)" build.log | cut -c1-420
             grep -E "BUILD FAILURE|Tests run:.*Failures|You have [0-9]+ Checkstyle|ERROR.*Failed to execute" build.log | cut -c1-420
-            # Causa raiz dos erros 500: log estruturado dos testes (logback-test.xml)
-            tail -c 3000 backend/target/test-server.log 2>/dev/null | tr '\n' '~' | fold -w 400 | head -8
             # Testes falhos por nome (classe.metodo) - sempre presente nos XML
             for xml in backend/target/failsafe-reports/*.xml backend/target/surefire-reports/*.xml; do
               [ -f "$xml" ] || continue
@@ -91,6 +89,22 @@ jobs:
           } | head -26 | while IFS= read -r line; do
             echo "::error title=CI::${line}"
           done
+
+      - name: Diagnostico de runtime (erros 500)
+        if: failure()
+        run: |
+          LOG=backend/target/test-server.log
+          if [ ! -f "$LOG" ]; then
+            echo "::warning title=Runtime::test-server.log nao gerado"
+            exit 0
+          fi
+          # Sequencia de linhas do log (sem stacktrace completo), quebrada em blocos legiveis
+          grep -nE "UNEXPECTED_ERROR|Exception|Caused by" "$LOG" | tail -12 | cut -c1-380 | nl -w2 -s': ' \
+            | while IFS= read -r line; do
+                echo "::error title=Runtime::${line}"
+              done
+          echo "### Ultimas linhas do log de testes" >> "$GITHUB_STEP_SUMMARY"
+          tail -40 "$LOG" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Diagnostico de cobertura (annotations)
         if: always()
