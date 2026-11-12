@@ -21,8 +21,9 @@ public class AttendancePersistenceAdapter implements AttendanceRepository {
     @Override
     public Attendance save(Attendance attendance) {
         // Reaproveita a entidade gerenciada quando ela ja existe no persistence context
-        AttendanceEntity entity = repository.findById(attendance.id())
-                .orElseGet(AttendanceEntity::new);
+        AttendanceEntity entity = attendance.id() == null
+                ? new AttendanceEntity()
+                : repository.findById(attendance.id()).orElseGet(AttendanceEntity::new);
         return EntityMapper.toDomain(repository.save(EntityMapper.toEntity(entity, attendance)));
     }
 

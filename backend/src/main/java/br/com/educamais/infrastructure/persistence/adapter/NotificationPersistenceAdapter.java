@@ -21,8 +21,9 @@ public class NotificationPersistenceAdapter implements NotificationRepository {
     @Override
     public Notification save(Notification notification) {
         // Reaproveita a entidade gerenciada quando ela ja existe no persistence context
-        NotificationEntity entity = repository.findById(notification.id())
-                .orElseGet(NotificationEntity::new);
+        NotificationEntity entity = notification.id() == null
+                ? new NotificationEntity()
+                : repository.findById(notification.id()).orElseGet(NotificationEntity::new);
         return EntityMapper.toDomain(repository.save(EntityMapper.toEntity(entity, notification)));
     }
 

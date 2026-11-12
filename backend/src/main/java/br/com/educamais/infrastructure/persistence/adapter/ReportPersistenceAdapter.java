@@ -22,8 +22,9 @@ public class ReportPersistenceAdapter implements ReportRepository {
     @Override
     public TeacherReport save(TeacherReport report) {
         // Reaproveita a entidade gerenciada quando ela ja existe no persistence context
-        ReportEntity entity = repository.findById(report.id())
-                .orElseGet(ReportEntity::new);
+        ReportEntity entity = report.id() == null
+                ? new ReportEntity()
+                : repository.findById(report.id()).orElseGet(ReportEntity::new);
         return EntityMapper.toDomain(repository.save(EntityMapper.toEntity(entity, report)));
     }
 

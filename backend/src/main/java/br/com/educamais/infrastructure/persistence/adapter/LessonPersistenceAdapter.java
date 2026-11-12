@@ -21,8 +21,9 @@ public class LessonPersistenceAdapter implements LessonRepository {
     @Override
     public Lesson save(Lesson lesson) {
         // Reaproveita a entidade gerenciada quando ela ja existe no persistence context
-        LessonEntity entity = repository.findById(lesson.id())
-                .orElseGet(LessonEntity::new);
+        LessonEntity entity = lesson.id() == null
+                ? new LessonEntity()
+                : repository.findById(lesson.id()).orElseGet(LessonEntity::new);
         return EntityMapper.toDomain(repository.save(EntityMapper.toEntity(entity, lesson)));
     }
 

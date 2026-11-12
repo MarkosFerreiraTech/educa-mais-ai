@@ -23,8 +23,9 @@ public class StudentPersistenceAdapter implements StudentRepository {
     @Override
     public Student save(Student student) {
         // Reaproveita a entidade gerenciada quando ela ja existe no persistence context
-        StudentEntity entity = repository.findById(student.id())
-                .orElseGet(StudentEntity::new);
+        StudentEntity entity = student.id() == null
+                ? new StudentEntity()
+                : repository.findById(student.id()).orElseGet(StudentEntity::new);
         return EntityMapper.toDomain(repository.save(EntityMapper.toEntity(entity, student)));
     }
 

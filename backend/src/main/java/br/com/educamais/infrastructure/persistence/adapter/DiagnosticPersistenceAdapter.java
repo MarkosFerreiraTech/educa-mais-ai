@@ -27,7 +27,9 @@ public class DiagnosticPersistenceAdapter implements DiagnosticRepository {
 
     @Override
     public DiagnosticQuestion saveQuestion(DiagnosticQuestion question) {
-        QuestionEntity entity = questionRepository.findById(question.id()).orElseGet(QuestionEntity::new);
+        QuestionEntity entity = question.id() == null
+                ? new QuestionEntity()
+                : questionRepository.findById(question.id()).orElseGet(QuestionEntity::new);
         return EntityMapper.toDomain(questionRepository.save(EntityMapper.toEntity(entity, question)));
     }
 
@@ -43,7 +45,9 @@ public class DiagnosticPersistenceAdapter implements DiagnosticRepository {
 
     @Override
     public DiagnosticAttempt saveAttempt(DiagnosticAttempt attempt) {
-        AttemptEntity entity = attemptRepository.findById(attempt.id()).orElseGet(AttemptEntity::new);
+        AttemptEntity entity = attempt.id() == null
+                ? new AttemptEntity()
+                : attemptRepository.findById(attempt.id()).orElseGet(AttemptEntity::new);
         return EntityMapper.toDomain(attemptRepository.save(EntityMapper.toEntity(entity, attempt)));
     }
 

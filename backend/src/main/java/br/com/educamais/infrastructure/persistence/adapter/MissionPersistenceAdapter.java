@@ -22,8 +22,9 @@ public class MissionPersistenceAdapter implements MissionRepository {
     @Override
     public Mission save(Mission mission) {
         // Reaproveita a entidade gerenciada quando ela ja existe no persistence context
-        MissionEntity entity = repository.findById(mission.id())
-                .orElseGet(MissionEntity::new);
+        MissionEntity entity = mission.id() == null
+                ? new MissionEntity()
+                : repository.findById(mission.id()).orElseGet(MissionEntity::new);
         return EntityMapper.toDomain(repository.save(EntityMapper.toEntity(entity, mission)));
     }
 

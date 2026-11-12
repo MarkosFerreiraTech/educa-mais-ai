@@ -26,8 +26,9 @@ public class GamificationPersistenceAdapter implements GamificationRepository {
 
     @Override
     public GamificationProfile save(GamificationProfile profile) {
-        GamificationEntity entity = profileRepository.findById(profile.studentId())
-                .orElseGet(GamificationEntity::new);
+        GamificationEntity entity = profile.studentId() == null
+                ? new GamificationEntity()
+                : profileRepository.findById(profile.studentId()).orElseGet(GamificationEntity::new);
         return EntityMapper.toDomain(profileRepository.save(EntityMapper.toEntity(entity, profile)));
     }
 
