@@ -76,6 +76,23 @@ jobs:
             echo "::error title=CI::${line:0:880}"
           done
 
+      - name: Diagnostico de cobertura (annotations)
+        if: always()
+        run: |
+          CSV=backend/target/site/jacoco/jacoco.csv
+          if [ ! -f "$CSV" ]; then
+            echo "::error title=Cobertura::jacoco.csv nao gerado"
+            exit 0
+          fi
+          TOTAL=$(awk -F, 'NR>1 {im+=$4; ic+=$5; lm+=$8; lc+=$9} END {printf "instrucoes %.1f%% | linhas %.1f%%", 100*ic/(im+ic), 100*lc/(lm+lc)}' "$CSV")
+          echo "::notice title=Cobertura total::${TOTAL}"
+          echo "### Cobertura total: ${TOTAL}" >> "$GITHUB_STEP_SUMMARY"
+          # 12 classes com menor cobertura de linhas (exclui DTOs/entidades/config ja ignorados no gate)
+          awk -F, 'NR>1 && $9>0 {pct=100*$9/($8+$9); printf "%.1f%%\t%s.%s\n", pct, $2, $3}' "$CSV" \
+            | sort -n | head -12 | while IFS=$'\t' read -r pct cls; do
+                echo "::warning title=Cobertura ${pct}::${cls}"
+              done
+
       - name: Publicar relatorio de testes
         if: always()
         uses: actions/upload-artifact@v4
