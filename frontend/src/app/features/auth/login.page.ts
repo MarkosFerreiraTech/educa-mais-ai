@@ -3,18 +3,22 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ClarityModule } from '@clr/angular';
 import { AuthService } from '../../core/auth/auth.service';
+import { Orbi } from '../../shared/components/orbi';
 
 /** UC09: login do aluno/professor com JWT (RF02). */
 @Component({
   selector: 'em-login-page',
-  imports: [FormsModule, RouterLink, ClarityModule],
+  imports: [FormsModule, RouterLink, ClarityModule, Orbi],
   template: `
     <main class="em-auth">
       <section class="em-auth__card" aria-labelledby="titulo-login">
-        <h1 id="titulo-login" class="em-hero-title" style="color: #0f4c81">Educa Mais</h1>
-        <p class="em-muted">
-          Seu tutor autonomo que recupera o conteudo das aulas que voce perdeu.
-        </p>
+        <div class="brand">
+          <em-orbi [size]="88" mood="feliz" />
+          <h1 id="titulo-login" class="brand__title">Educa <span>Mais</span></h1>
+          <p class="brand__tagline">
+            Seu tutor autonomo que recupera o conteudo das aulas que voce perdeu — no seu ritmo e com os seus interesses.
+          </p>
+        </div>
 
         @if (error()) {
           <clr-alert clrAlertType="danger" [clrAlertClosable]="false">
@@ -49,16 +53,92 @@ import { AuthService } from '../../core/auth/auth.service';
             />
           </clr-password-container>
 
-          <div class="em-row" style="margin-top: 1rem">
-            <button type="submit" class="btn btn-primary" [disabled]="loading() || !form.form.valid">
-              {{ loading() ? 'Entrando...' : 'Entrar' }}
-            </button>
-            <a routerLink="/cadastrar" class="btn btn-link">Criar minha conta</a>
-          </div>
+          <button
+            type="submit"
+            class="btn btn-primary btn-lg btn-block"
+            style="margin-top: 1.25rem"
+            [disabled]="loading() || !form.form.valid"
+          >
+            {{ loading() ? 'Entrando...' : 'Entrar' }}
+          </button>
         </form>
+
+        <p class="brand__foot">
+          Ainda nao tem conta?
+          <a routerLink="/cadastrar">Criar minha conta</a>
+        </p>
+
+        <div class="demo" role="note">
+          <span class="demo__label">Conta de demonstracao</span>
+          <code>ana.souza@escola.br</code> · <code>Demo&#64;2026</code>
+        </div>
       </section>
     </main>
   `,
+  styles: [
+    `
+      .brand {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.15rem;
+        margin-bottom: 0.75rem;
+      }
+      .brand__title {
+        margin: 0.15rem 0 0.25rem;
+        font-size: 2rem;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+      }
+      .brand__title span {
+        color: var(--primary-ink);
+      }
+      .brand__tagline {
+        margin: 0;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        font-weight: 600;
+        max-width: 26rem;
+      }
+      .brand__foot {
+        margin: 1rem 0 0;
+        text-align: center;
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--text-muted);
+      }
+      .brand__foot a {
+        font-weight: 900;
+      }
+      .demo {
+        margin-top: 0.875rem;
+        padding: 0.625rem 0.75rem;
+        border-radius: var(--radius-md);
+        background: var(--bg-soft);
+        border: 2px dashed var(--border-light);
+        text-align: center;
+        font-size: 0.82rem;
+        color: var(--text-muted);
+      }
+      .demo__label {
+        display: block;
+        font-size: 0.66rem;
+        font-weight: 900;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 0.15rem;
+      }
+      .demo code {
+        font-weight: 800;
+        color: var(--text-main);
+        background: var(--bg-card);
+        padding: 0.05rem 0.3rem;
+        border-radius: 6px;
+      }
+    `,
+  ],
 })
 export class LoginPage {
   private readonly auth = inject(AuthService);
@@ -75,10 +155,10 @@ export class LoginPage {
     }
     this.loading.set(true);
     this.error.set(null);
-    this.auth.login(this.email.trim(), this.password).subscribe({
-      next: (response) => {
+    this.auth.login(this.email, this.password).subscribe({
+      next: () => {
         this.loading.set(false);
-        void this.router.navigate([response.role === 'ALUNO' ? '/aluno' : '/professor']);
+        void this.router.navigate([this.auth.isTeacher() ? '/professor' : '/aluno']);
       },
       error: (error: unknown) => {
         this.loading.set(false);
