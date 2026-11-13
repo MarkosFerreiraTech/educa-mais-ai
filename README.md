@@ -116,7 +116,7 @@ docker compose down -v && docker compose up -d --build
 | --- | --- |
 | **Backend** | Java 21, Spring Boot 4.0.9 (Web MVC, Security 7, Data JPA, Validation, Actuator), Hibernate 7, Flyway, PostgreSQL 16 |
 | **Agente de IA** | Google Gemini Flash (`gemini-2.5-flash`) com *tool calling* + *structured outputs*, encapsulado pelo port `LlmPort` |
-| **Frontend** | Angular 22 (standalone, zoneless, rotas lazy), VMware Clarity (`@clr/angular` 18.5, `@clr/ui`, `@cds/core`), Mobile-First |
+| **Frontend** | Angular 22 (standalone, zoneless, rotas lazy), VMware Clarity (`@clr/angular` 18.5, `@clr/ui`, `@cds/core`) + design system próprio ([docs/design-system.md](docs/design-system.md)), fonte Nunito self-hosted, Mobile-First |
 | **Mensageria** | Domain Events (Observer) + listener transacional `AFTER_COMMIT`; em nuvem, EventBridge → SQS |
 | **Cloud (AWS)** | App Runner (API), Amplify (SPA), RDS PostgreSQL, EventBridge/SQS, Secrets Manager/KMS, CloudWatch |
 | **Qualidade** | JUnit 5, Mockito, AssertJ, ArchUnit (regras de camada), JaCoCo (gate 60% linhas), Checkstyle, SonarQube |
@@ -168,7 +168,7 @@ Builder (payload do Gemini), DTO × Entity (nunca expostos), Dependency Injectio
 | 🎮 Gamificação | +50 XP e +1 💎 por missão (idempotente), ofensiva de dias, nível, loja e conversão 1 💎 = 10 moedas | RF29-RF32, RN01-RN04 |
 | 👩‍🏫 Professor | Relatório automático (resumo, taxa de acerto, lacunas, recomendação) + dashboard da turma | RF33-RF35 |
 | 🔐 Segurança | JWT stateless (access/refresh), RBAC, CORS por allowlist, rate limit, bcrypt 12, AES-256-GCM, LGPD (anonimização) | RF01-RF05, RNF06-RNF11 |
-| 🖥️ Frontend | Login, onboarding de interesses, jornada da missão, loja, perfil e dashboard do professor (Clarity, Mobile-First, acessível) | RF38-RF40 |
+| 🖥️ Frontend | Login, onboarding de interesses, jornada da missão, loja, perfil e dashboard do professor (Clarity + design system lúdico, Mobile-First, WCAG 2.2 AA) | RF38-RF40 |
 | ☁️ Infra | Docker Compose completo, Dockerfiles multi-stage, Authelia/OIDC, Prometheus/Grafana, health checks | RNF12-RNF16 |
 
 ### Planejado (pós-hackathon)
